@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">GoMoviesDroid</string>
+    <string name="search_field_placeholder">Search for movie…</string>
+    <string name="server_url">Server URL</string>
+    <string name="save_playback_on_stop">Save Playback on Stop</string>
+    <string name="save_configuration">Save</string>
+    <string name="default_error_message">Something went wrong</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="player_button_height">36dp</dimen>
+    <dimen name="player_button_width">42dp</dimen>
+    <dimen name="player_button_corner_radius">10dp</dimen>
+    <dimen name="player_round_button_size">36dp</dimen>
+</resources>
