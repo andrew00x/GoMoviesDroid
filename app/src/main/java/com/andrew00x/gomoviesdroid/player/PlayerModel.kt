@@ -7,7 +7,6 @@ import com.andrew00x.gomoviesdroid.PlayerStatus
 import com.andrew00x.gomoviesdroid.Stream
 import com.andrew00x.gomoviesdroid.Volume
 import com.jakewharton.rxbinding2.view.RxView
-import com.jakewharton.rxbinding2.widget.RxSeekBar
 import io.reactivex.Observable
 import retrofit2.Response
 
@@ -111,9 +110,19 @@ class PlayerModel(private val service: GomoviesService,
     }
 
     fun seekPosition(): Observable<Int> {
-        return RxSeekBar.userChanges(seekBar)
-    }
+        return Observable.create<Int> { emitter ->
+            emitter.setCancellable { seekBar.setOnSeekBarChangeListener(null) }
+            seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    if (fromUser) emitter.onNext(progress)
+                }
 
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            })
+        }
+    }
 
     fun forward10min(): Observable<PlayerStatus> {
         return service.seek(10 * 60)

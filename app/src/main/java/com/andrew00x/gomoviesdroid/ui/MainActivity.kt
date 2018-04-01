@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentStatePagerAdapter
-import android.support.v4.view.PagerAdapter
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AppCompatActivity
 import android.view.View
@@ -46,12 +45,6 @@ class MainActivity : MainView, AppCompatActivity() {
             override fun getCount(): Int {
                 return pages.size
             }
-
-            override fun getItemPosition(item: Any?): Int {
-                return if (pages.indexOf(item) < 0)
-                    PagerAdapter.POSITION_NONE
-                else super.getItemPosition(item)
-            }
         }
 
         val model = MainModel(pager)
@@ -73,13 +66,6 @@ class MainActivity : MainView, AppCompatActivity() {
 
     override fun showPage(page: ViewPage) {
         pager.currentItem = page.position
-    }
-
-    override fun removePage(page: ViewPage) {
-        if (pages.size > page.position) {
-            pages.removeAt(page.position)
-            pager.adapter.notifyDataSetChanged()
-        }
     }
 
     override fun showError(message: String?) {
