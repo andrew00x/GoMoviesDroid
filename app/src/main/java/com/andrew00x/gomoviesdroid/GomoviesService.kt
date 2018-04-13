@@ -64,7 +64,7 @@ class DefaultGomoviesService (private val api: GomoviesApi, configService: Confi
     }
 
     override fun play(movie: Movie): Observable<PlayerStatus> {
-        return api.play("${url}play", MovieId(movie.id))
+        return api.play("${url}play", MoviePath(movie.path))
     }
 
     override fun previousAudioTrack(): Observable<List<Stream>> {

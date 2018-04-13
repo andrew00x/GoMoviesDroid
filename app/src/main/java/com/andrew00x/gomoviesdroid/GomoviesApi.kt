@@ -12,7 +12,7 @@ data class Movie(
         val available: Boolean
 )
 
-data class MovieId(val movie: Int)
+data class MoviePath(val movie: String)
 
 data class PlayerStatus(val playing: String = "",
                         val duration: Int = 0,
@@ -59,7 +59,7 @@ interface GomoviesApi {
     fun play(@Url url: String): Observable<PlayerStatus>
 
     @POST
-    fun play(@Url url: String, @Body movieId: MovieId): Observable<PlayerStatus>
+    fun play(@Url url: String, @Body moviePath: MoviePath): Observable<PlayerStatus>
 
     @POST
     fun previousAudioTrack(@Url url: String): Observable<List<Stream>>
