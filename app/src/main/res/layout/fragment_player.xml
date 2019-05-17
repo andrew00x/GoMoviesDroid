@@ -100,20 +100,12 @@
         android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/play"
+            android:id="@+id/playPause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:background="@drawable/square_button_gray"
             android:src="@drawable/ic_play_black_24dp" />
-
-        <ImageButton
-            android:id="@+id/pause"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:background="@drawable/square_button_gray"
-            android:src="@drawable/ic_pause_black_24dp" />
 
         <ImageButton
             android:id="@+id/stop"
@@ -122,6 +114,15 @@
             android:layout_margin="8dp"
             android:background="@drawable/square_button_red"
             android:src="@drawable/ic_stop_black_24dp" />
+
+        <ImageButton
+            android:id="@+id/replay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:background="@drawable/square_button_green"
+            android:src="@drawable/ic_replay_black_24dp" />
+
     </LinearLayout>
 
     <LinearLayout

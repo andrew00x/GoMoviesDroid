@@ -12,93 +12,111 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import com.andrew00x.gomoviesdroid.BaseView
+import com.andrew00x.gomoviesdroid.GomoviesApplication
+import com.andrew00x.gomoviesdroid.PlaybackListener
 import com.andrew00x.gomoviesdroid.R
-import com.andrew00x.gomoviesdroid.main.MainModel
-import com.andrew00x.gomoviesdroid.main.MainPresenter
-import com.andrew00x.gomoviesdroid.main.MainView
-import com.andrew00x.gomoviesdroid.main.ViewPage
+import io.reactivex.Observable
+import io.reactivex.disposables.CompositeDisposable
 
-class MainActivity : MainView, AppCompatActivity() {
-    private val pages = mutableListOf<Fragment>()
-    private lateinit var pager: ViewPager
-    private lateinit var progressSpinner: ProgressBar
-    private val errorView by lazy { layoutInflater.inflate(R.layout.error_message, null) }
+class MainActivity : PlaybackListener, BaseView, AppCompatActivity() {
+  private val pages = mutableListOf<Fragment>()
+  private val subscriptions: CompositeDisposable = CompositeDisposable()
+  private val errorView by lazy { layoutInflater.inflate(R.layout.error_message, null) }
+  private lateinit var pager: ViewPager
+  private lateinit var progressSpinner: ProgressBar
 
-    private var presenter: MainPresenter? = null
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_main)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+    pager = findViewById(R.id.fragment_container)
+    progressSpinner = findViewById(R.id.progress_spinner)
 
-        pager = findViewById(R.id.fragment_container)
-        progressSpinner = findViewById(R.id.progress_spinner)
+    pages.clear()
+    pages.add(ViewPage.CONFIGURATION.position, ConfigurationFragment())
+    pages.add(ViewPage.CATALOG.position, CatalogFragment())
+    pages.add(ViewPage.PLAYER.position, PlayerFragment())
+    pager.adapter = object : FragmentStatePagerAdapter(supportFragmentManager) {
+      override fun getItem(position: Int): Fragment {
+        return pages[position]
+      }
 
-        pages.clear()
-        pages.add(ViewPage.CONFIGURATION.position, ConfigurationFragment())
-        pages.add(ViewPage.CATALOG.position, CatalogFragment())
-        pages.add(ViewPage.PLAYER.position, PlayerFragment())
-        pager.adapter = object : FragmentStatePagerAdapter(supportFragmentManager) {
-            override fun getItem(position: Int): Fragment {
-                return pages[position]
-            }
+      override fun getCount(): Int {
+        return pages.size
+      }
+    }
 
-            override fun getCount(): Int {
-                return pages.size
-            }
+    subscriptions.add(changePage().subscribe { refresh() })
+
+    showPage(ViewPage.CATALOG)
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    subscriptions.dispose()
+  }
+
+  override fun recreate() {
+    (application as GomoviesApplication).refreshComponent()
+    super.recreate()
+  }
+
+  private fun changePage(): Observable<Int> {
+    return Observable.create<Int> { emitter ->
+      val listener = object : ViewPager.OnPageChangeListener {
+        override fun onPageScrollStateChanged(state: Int) {}
+
+        override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
+
+        override fun onPageSelected(position: Int) {
+          emitter.onNext(position)
         }
-
-        val model = MainModel(pager)
-        val presenter = MainPresenter(model, this)
-        presenter.start()
-        this.presenter = presenter
-
-        showPage(ViewPage.CATALOG)
+      }
+      emitter.setCancellable { pager.removeOnPageChangeListener(listener) }
+      pager.addOnPageChangeListener(listener)
     }
+  }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        presenter?.stop()
-    }
+  override fun onWindowFocusChanged(hasFocus: Boolean) {
+    refresh()
+  }
 
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        refresh()
-    }
+  override fun showError(message: String?) {
+    val toast = Toast(this)
+    errorView.findViewById<TextView>(R.id.error_message).text = (message
+        ?: resources.getText(R.string.default_error_message))
+    toast.view = errorView
+    toast.duration = Toast.LENGTH_LONG
+    toast.show()
+  }
 
-    override fun showPage(page: ViewPage) {
-        pager.currentItem = page.position
-    }
+  override fun showLoader() {
+    progressSpinner.visibility = View.VISIBLE
+  }
 
-    override fun showError(message: String?) {
-        val toast = Toast(this)
-        errorView.findViewById<TextView>(R.id.error_message).text = message ?: resources.getText(R.string.default_error_message)
-        toast.view = errorView
-        toast.duration = Toast.LENGTH_LONG
-        toast.show()
-    }
+  override fun hideLoader() {
+    progressSpinner.visibility = View.GONE
+  }
 
-    override fun showLoader() {
-        progressSpinner.visibility = View.VISIBLE
-    }
+  override fun onPlaybackStarted() {
+    showPage(ViewPage.PLAYER)
+  }
 
-    override fun hideLoader() {
-        progressSpinner.visibility = View.GONE
-    }
+  override fun onPlaybackStopped() {
+    showPage(ViewPage.CATALOG)
+  }
 
-    override fun onPlaybackStarted() {
-        showPage(ViewPage.PLAYER)
-    }
+  override fun refresh() {
+    hideKeyboard()
+    val fragment = pages[pager.currentItem]
+    if (fragment.isAdded) (fragment as BaseView).refresh()
+  }
 
-    override fun onPlaybackStopped() {
-        showPage(ViewPage.CATALOG)
-    }
+  private fun showPage(page: ViewPage) {
+    pager.currentItem = page.position
+  }
 
-    override fun hideKeyboard() {
-        (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(pager.windowToken, 0)
-    }
-
-    override fun refresh() {
-        hideKeyboard()
-        val fragment = pages[pager.currentItem]
-        (fragment as BaseView).refresh()
-    }
+  private fun hideKeyboard() {
+    (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(pager.windowToken, 0)
+  }
 }

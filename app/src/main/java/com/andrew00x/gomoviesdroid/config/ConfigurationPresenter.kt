@@ -1,47 +1,45 @@
 package com.andrew00x.gomoviesdroid.config
 
-import com.andrew00x.gomoviesdroid.BasePresenter
-import com.andrew00x.gomoviesdroid.HttpResponseObserver
-import io.reactivex.Observable
+import android.annotation.SuppressLint
+import com.andrew00x.gomoviesdroid.ErrorHandler
 import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers.io
+import javax.inject.Inject
 
-class ConfigurationPresenter(private val model: ConfigurationModel, private val view: ConfigurationView) : BasePresenter {
-    private var config: Configuration? = null
-    private val subscriptions = CompositeDisposable()
+class ConfigurationPresenter @Inject constructor(
+    private val configurationModel: ConfigurationModel,
+    private val errorHandler: ErrorHandler) {
+  private val subscriptions = CompositeDisposable()
+  private var configuration: Configuration? = null
 
-    override fun start() {
-        subscriptions.add(model.changeServerUrl().subscribe { value -> config?.serverUrl = value })
-        subscriptions.add(model.toggleSavePlaybackOnStop().subscribe { value -> config?.savePlaybackOnStop = value })
-        subscriptions.add(
-                model.clickOnSaveConfiguration().subscribe {
-                    (if (config == null) configInitError() else model.saveConfiguration(config!!))
-                            .subscribeOn(io()).observeOn(mainThread())
-                            .subscribeWith(object : HttpResponseObserver<Any>(view) {
-                                override fun onSuccess(body: Any) {
-                                    view.onConfigurationSaved()
-                                }
-                            })
-                })
-        refresh()
-    }
+  fun attach(view: ConfigurationView, events: ConfigurationEventSource) {
+    subscriptions.add(events.changeServer().subscribe { value -> configuration?.server = value })
+    subscriptions.add(events.changePort().subscribe { value -> configuration?.port = if (value.isBlank()) 80 else value.toInt() })
+    subscriptions.add(events.clickOnSaveConfiguration().subscribe {
+      configurationModel.save(configuration!!).subscribeOn(io()).observeOn(mainThread())
+          .subscribe(
+              { view.onConfigurationSaved() },
+              { err -> errorHandler.handleError(view, err) }
+          )
+    })
+    refresh(view)
+  }
 
-    private fun configInitError(): Observable<RuntimeException> {
-        return Observable.error<RuntimeException>(RuntimeException("Unable save configuration, error occurred when on initialization"))
-    }
+  fun detach() {
+    subscriptions.dispose()
+    configuration = null
+  }
 
-    override fun stop() {
-        subscriptions.dispose()
-    }
-
-    override fun refresh() {
-        model.readConfiguration().subscribeOn(io()).observeOn(mainThread())
-                .subscribeWith(object : HttpResponseObserver<Configuration>(view) {
-                    override fun onSuccess(body: Configuration) {
-                        this@ConfigurationPresenter.config = body
-                        view.showConfiguration(body)
-                    }
-                })
-    }
+  @SuppressLint("CheckResult")
+  fun refresh(view: ConfigurationView) {
+    configurationModel.read().subscribeOn(io()).observeOn(mainThread())
+        .subscribe({ config ->
+          ConfigurationPresenter@ this.configuration = config
+          view.showServer(config.server)
+          view.showPort(config.port)
+        }, { err ->
+          errorHandler.handleError(view, err)
+        })
+  }
 }

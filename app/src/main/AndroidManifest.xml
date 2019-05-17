@@ -19,7 +19,7 @@
             android:value="1" />
         <meta-data
             android:name="AA_MODELS"
-            android:value="com.andrew00x.gomoviesdroid.config.Configuration" />
+            android:value="com.andrew00x.gomoviesdroid.player.AAPlayback" />
 
         <activity
             android:name=".ui.MainActivity"

@@ -1,7 +1,12 @@
 package com.andrew00x.gomoviesdroid
 
-import com.andrew00x.gomoviesdroid.config.AAConfigurationService
-import com.andrew00x.gomoviesdroid.config.ConfigurationService
+import android.content.Context
+import com.andrew00x.gomoviesdroid.config.ConfigurationRepository
+import com.andrew00x.gomoviesdroid.config.SharedPreferencesConfigurationRepository
+import com.andrew00x.gomoviesdroid.player.AAPlaybackRepository
+import com.andrew00x.gomoviesdroid.player.PlaybackRepository
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import retrofit2.Retrofit
@@ -10,28 +15,32 @@ import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Module
-class GomoviesModule {
-    @Singleton
-    @Provides
-    fun gomoviesApi(configService: ConfigurationService): GomoviesApi {
-        val serverUrl = configService.retrieve().serverUrl
-        val retrofit = Retrofit.Builder()
-                .baseUrl(if (serverUrl.isNotEmpty()) serverUrl else "http://localhost:8000/api/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build()
-        return retrofit.create(GomoviesApi::class.java)
-    }
+class GomoviesModule(private val context: Context) {
+  @Singleton
+  @Provides
+  fun configurationRepository(): ConfigurationRepository = SharedPreferencesConfigurationRepository(context)
 
-    @Singleton
-    @Provides
-    fun configurationService(): ConfigurationService {
-        return AAConfigurationService()
-    }
+  @Singleton
+  @Provides
+  fun playbackRepository(): PlaybackRepository = AAPlaybackRepository()
 
-    @Singleton
-    @Provides
-    fun apiService(api: GomoviesApi, configService: ConfigurationService): GomoviesService {
-        return DefaultGomoviesService(api, configService)
-    }
+  @Singleton
+  @Provides
+  fun apiService(configRepository: ConfigurationRepository): GomoviesService {
+    val retrofit = Retrofit.Builder()
+        .baseUrl(configRepository.retrieve().baseUrl)
+        .addConverterFactory(GsonConverterFactory.create())
+        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+        .build()
+    val api = retrofit.create(GomoviesApi::class.java)
+    return DefaultGomoviesService(api)
+  }
+
+  @Singleton
+  @Provides
+  fun gson(): Gson = GsonBuilder().create()
+
+  @Singleton
+  @Provides
+  fun errorHandler(gson: Gson): ErrorHandler = DefaultErrorHandler(gson)
 }

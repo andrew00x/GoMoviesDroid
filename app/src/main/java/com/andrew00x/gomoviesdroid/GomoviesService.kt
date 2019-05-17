@@ -1,113 +1,123 @@
 package com.andrew00x.gomoviesdroid
 
-import com.andrew00x.gomoviesdroid.config.Configuration
-import com.andrew00x.gomoviesdroid.config.ConfigurationService
-import com.andrew00x.gomoviesdroid.config.ConfigurationUpdateListener
-import io.reactivex.Observable
-import retrofit2.Response
+import io.reactivex.Single
 
 interface GomoviesService {
-    fun list(): Observable<List<Movie>>
-    fun mute(): Observable<Response<Void>>
-    fun nextAudioTrack(): Observable<List<Stream>>
-    fun nextSubtitles(): Observable<List<Stream>>
-    fun pause(): Observable<PlayerStatus>
-    fun play(): Observable<PlayerStatus>
-    fun play(movie: Movie): Observable<PlayerStatus>
-    fun previousAudioTrack(): Observable<List<Stream>>
-    fun previousSubtitles(): Observable<List<Stream>>
-    fun search(title: String): Observable<List<Movie>>
-    fun seek(position: Int): Observable<PlayerStatus>
-    fun setPosition(position: Int): Observable<PlayerStatus>
-    fun status(): Observable<PlayerStatus>
-    fun stop(): Observable<PlayerStatus>
-    fun toggleSubtitles(): Observable<Response<Void>>
-    fun unmute(): Observable<Response<Void>>
-    fun volumeUp(): Observable<Volume>
-    fun volumeDown(): Observable<Volume>
+  fun list(): Single<List<Movie>>
+  fun pause(): Single<PlayerStatus>
+  fun play(): Single<PlayerStatus>
+  fun playPause(): Single<PlayerStatus>
+  fun replay(): Single<PlayerStatus>
+  fun play(playback: Playback): Single<PlayerStatus>
+  fun search(title: String): Single<List<Movie>>
+  fun seek(position: Int): Single<PlayerStatus>
+  fun setPosition(position: Int): Single<PlayerStatus>
+  fun getStatus(): Single<PlayerStatus>
+  fun stop(): Single<PlayerStatus>
+  fun audioTracks(): Single<List<Stream>>
+  fun nextAudioTrack(): Single<List<Stream>>
+  fun previousAudioTrack(): Single<List<Stream>>
+  fun selectAudioTrack(index: Int): Single<List<Stream>>
+  fun subtitles(): Single<List<Stream>>
+  fun nextSubtitle(): Single<List<Stream>>
+  fun previousSubtitle(): Single<List<Stream>>
+  fun selectSubtitle(index: Int): Single<List<Stream>>
+  fun toggleMute(): Single<PlayerStatus>
+  fun toggleSubtitles(): Single<PlayerStatus>
+  fun volumeUp(): Single<Volume>
+  fun volumeDown(): Single<Volume>
 }
 
-class DefaultGomoviesService (private val api: GomoviesApi, configService: ConfigurationService) : ConfigurationUpdateListener, GomoviesService {
-    private var url: String
+class DefaultGomoviesService(private val api: GomoviesApi) : GomoviesService {
+  override fun list(): Single<List<Movie>> {
+    return api.list()
+  }
 
-    init {
-        this.url = configService.retrieve().serverUrl
-        configService.addListener(this)
-    }
+  override fun search(title: String): Single<List<Movie>> {
+    return api.search(title)
+  }
 
-    override fun onConfigurationUpdate(updated: Configuration) {
-        url = updated.serverUrl
-    }
+  override fun play(playback: Playback): Single<PlayerStatus> {
+    return api.play(playback)
+  }
 
-    override fun list(): Observable<List<Movie>> {
-        return api.list("${url}list")
-    }
+  override fun pause(): Single<PlayerStatus> {
+    return api.pause()
+  }
 
-    override fun mute(): Observable<Response<Void>> {
-        return api.mute("${url}player/mute")
-    }
+  override fun playPause(): Single<PlayerStatus> {
+    return api.playPause()
+  }
 
-    override fun nextAudioTrack(): Observable<List<Stream>> {
-        return api.nextAudioTrack("${url}player/nextaudiotrack")
-    }
+  override fun play(): Single<PlayerStatus> {
+    return api.play()
+  }
 
-    override fun nextSubtitles(): Observable<List<Stream>> {
-        return api.nextSubtitles("${url}player/nextsubtitles")
-    }
+  override fun replay(): Single<PlayerStatus> {
+    return api.replay()
+  }
 
-    override fun pause(): Observable<PlayerStatus> {
-        return api.pause("${url}player/pause")
-    }
+  override fun seek(position: Int): Single<PlayerStatus> {
+    return api.seek(Position(position))
+  }
 
-    override fun play(): Observable<PlayerStatus> {
-        return api.play("${url}player/play")
-    }
+  override fun setPosition(position: Int): Single<PlayerStatus> {
+    return api.setPosition(Position(position))
+  }
 
-    override fun play(movie: Movie): Observable<PlayerStatus> {
-        return api.play("${url}play", MoviePath(movie.path))
-    }
+  override fun getStatus(): Single<PlayerStatus> {
+    return api.getStatus()
+  }
 
-    override fun previousAudioTrack(): Observable<List<Stream>> {
-        return api.previousAudioTrack("${url}player/previousaudiotrack")
-    }
+  override fun stop(): Single<PlayerStatus> {
+    return api.stop()
+  }
 
-    override fun previousSubtitles(): Observable<List<Stream>> {
-        return api.previousSubtitles("${url}player/previoussubtitles")
-    }
+  override fun toggleMute(): Single<PlayerStatus> {
+    return api.toggleMute()
+  }
 
-    override fun search(title: String): Observable<List<Movie>> {
-        return api.search("${url}search", title)
-    }
+  override fun toggleSubtitles(): Single<PlayerStatus> {
+    return api.toggleSubtitles()
+  }
 
-    override fun seek(position: Int): Observable<PlayerStatus> {
-        return api.seek("${url}player/seek", Position(position))
-    }
+  override fun volumeDown(): Single<Volume> {
+    return api.volumeDown()
+  }
 
-    override fun setPosition(position: Int): Observable<PlayerStatus> {
-        return api.setPosition("${url}player/position", Position(position))
-    }
+  override fun volumeUp(): Single<Volume> {
+    return api.volumeUp()
+  }
 
-    override fun status(): Observable<PlayerStatus> {
-        return api.status("${url}player/status")
-    }
+  override fun audioTracks(): Single<List<Stream>> {
+    return api.audioTracks()
+  }
 
-    override fun stop(): Observable<PlayerStatus> {
-        return api.stop("${url}player/stop")
-    }
+  override fun nextAudioTrack(): Single<List<Stream>> {
+    return api.nextAudioTrack()
+  }
 
-    override fun toggleSubtitles(): Observable<Response<Void>> {
-        return api.toggleSubtitles("${url}player/togglesubtitles")
-    }
+  override fun previousAudioTrack(): Single<List<Stream>> {
+    return api.previousAudioTrack()
+  }
 
-    override fun unmute(): Observable<Response<Void>> {
-        return api.unmute("${url}player/unmute")
-    }
+  override fun selectAudioTrack(index: Int): Single<List<Stream>> {
+    return api.selectAudioTrack(StreamIndex(index))
+  }
 
-    override fun volumeDown(): Observable<Volume> {
-        return api.volumeDown("${url}player/volumedown")
-    }
+  override fun subtitles(): Single<List<Stream>> {
+    return api.subtitles()
+  }
 
-    override fun volumeUp(): Observable<Volume> {
-        return api.volumeUp("${url}player/volumeup")
-    }
+  override fun nextSubtitle(): Single<List<Stream>> {
+    return api.nextSubtitle()
+  }
+
+  override fun previousSubtitle(): Single<List<Stream>> {
+    return api.previousSubtitle()
+  }
+
+  override fun selectSubtitle(index: Int): Single<List<Stream>> {
+    return api.selectSubtitle(StreamIndex(index))
+  }
 }

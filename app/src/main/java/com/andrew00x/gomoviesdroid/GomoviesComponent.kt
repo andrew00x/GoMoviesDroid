@@ -7,9 +7,9 @@ import dagger.Component
 import javax.inject.Singleton
 
 @Singleton
-@Component(modules = arrayOf(GomoviesModule::class))
+@Component(modules = [GomoviesModule::class])
 interface GomoviesComponent {
-    fun injectInto(catalog: CatalogFragment)
-    fun injectInto(player: PlayerFragment)
-    fun injectInto(config: ConfigurationFragment)
+  fun injectInto(catalog: CatalogFragment)
+  fun injectInto(player: PlayerFragment)
+  fun injectInto(config: ConfigurationFragment)
 }

@@ -1,199 +1,96 @@
 package com.andrew00x.gomoviesdroid.player
 
-import android.view.View
-import android.widget.SeekBar
-import com.andrew00x.gomoviesdroid.GomoviesService
-import com.andrew00x.gomoviesdroid.PlayerStatus
-import com.andrew00x.gomoviesdroid.Stream
-import com.andrew00x.gomoviesdroid.Volume
-import com.jakewharton.rxbinding2.view.RxView
-import io.reactivex.Observable
-import retrofit2.Response
+import com.andrew00x.gomoviesdroid.*
+import io.reactivex.Single
+import javax.inject.Inject
 
-enum class MuteState {
-    ON,OFF;
+class PlayerModel @Inject constructor(
+    private val service: GomoviesService,
+    private val playbacks: PlaybackRepository) {
 
-    fun toggle(): MuteState {
-        return if (this == ON) OFF else ON
+  fun play(file: String): Single<PlayerStatus> {
+    val playback = playbacks.find(file) ?: Playback(file)
+    return service.play(playback)
+  }
+
+  fun pause(): Single<PlayerStatus> {
+    return service.pause()
+  }
+
+  fun play(): Single<PlayerStatus> {
+    return service.play()
+  }
+
+  fun replay(): Single<PlayerStatus> {
+    return service.replay().doAfterSuccess { status ->
+      val playback = playbacks.find(status.file)
+      if (playback != null) playbacks.remove(playback)
     }
-}
+  }
 
-class PlayerModel(private val service: GomoviesService,
-                  private val refresh: View,
-                  private val play: View,
-                  private val pause: View,
-                  private val stop: View,
-                  private val forward10min: View,
-                  private val rewind10min: View,
-                  private val forward30sec: View,
-                  private val rewind30sec: View,
-                  private val volumeUp: View,
-                  private val volumeDown: View,
-                  private val nextAudioTrack: View,
-                  private val previousAudioTrack: View,
-                  private val nextSubtitles: View,
-                  private val previousSubtitles: View,
-                  private val toggleMute: View,
-                  private val toggleSubtitles: View,
-                  private val seekBar: SeekBar
-) {
+  fun playPause(): Single<PlayerStatus> {
+    return service.playPause()
+  }
 
-    init {
-        toggleMute.tag = MuteState.OFF
-    }
+  fun forward(position: Int): Single<PlayerStatus> {
+    return service.seek(position)
+  }
 
-    fun clickForward10min(): Observable<Any> {
-        return RxView.clicks(forward10min)
-    }
+  fun rewind(position: Int): Single<PlayerStatus> {
+    return service.seek(-position)
+  }
 
-    fun clickForward30sec(): Observable<Any> {
-        return RxView.clicks(forward30sec)
-    }
-
-    fun clickNextAudioTrack(): Observable<Any> {
-        return RxView.clicks(nextAudioTrack)
-    }
-
-    fun clickNextSubtitles(): Observable<Any> {
-        return RxView.clicks(nextSubtitles)
-    }
-
-    fun clickPause(): Observable<Any> {
-        return RxView.clicks(pause)
-    }
-
-    fun clickPlay(): Observable<Any> {
-        return RxView.clicks(play)
-    }
-
-    fun clickPreviousAudioTrack(): Observable<Any> {
-        return RxView.clicks(previousAudioTrack)
-    }
-
-    fun clickPreviousSubtitles(): Observable<Any> {
-        return RxView.clicks(previousSubtitles)
-    }
-
-    fun clickRefresh(): Observable<Any> {
-        return RxView.clicks(refresh)
-    }
-
-    fun clickRewind10min(): Observable<Any> {
-        return RxView.clicks(rewind10min)
-    }
-
-    fun clickRewind30sec(): Observable<Any> {
-        return RxView.clicks(rewind30sec)
-    }
-
-    fun clickStop(): Observable<Any> {
-        return RxView.clicks(stop)
-    }
-
-    fun clickToggleMute(): Observable<MuteState> {
-        return Observable.create<MuteState> { emitter ->
-            emitter.setCancellable { toggleMute.setOnClickListener(null) }
-            toggleMute.setOnClickListener { v -> emitter.onNext((v.tag as MuteState).toggle()) }
+  fun stop(): Single<PlayerStatus> {
+    return service.stop().doAfterSuccess { status ->
+      val playback = Playback(file = status.file, position = status.position, activeAudioTrack = status.activeAudioTrack, activeSubtitle = status.activeSubtitle)
+      val existent = playbacks.find(playback.file)
+      if (existent != playback) {
+        if (existent != null) {
+          playbacks.remove(existent)
         }
+        playbacks.save(playback)
+      }
     }
+  }
 
-    fun clickToggleSubtitles(): Observable<Any> {
-        return RxView.clicks(toggleSubtitles)
-    }
+  fun setPosition(position: Int): Single<PlayerStatus> {
+    return service.setPosition(position)
+  }
 
-    fun clickVolumeDown(): Observable<Any> {
-        return RxView.clicks(volumeDown)
-    }
+  fun switchToNextAudioTrack(): Single<List<Stream>> {
+    return service.nextAudioTrack()
+  }
 
-    fun clickVolumeUp(): Observable<Any> {
-        return RxView.clicks(volumeUp)
-    }
+  fun switchToPreviousAudioTrack(): Single<List<Stream>> {
+    return service.previousAudioTrack()
+  }
 
-    fun seekPosition(): Observable<Int> {
-        return Observable.create<Int> { emitter ->
-            emitter.setCancellable { seekBar.setOnSeekBarChangeListener(null) }
-            seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                    if (fromUser) emitter.onNext(progress)
-                }
+  fun switchToNextSubtitle(): Single<List<Stream>> {
+    return service.nextSubtitle()
+  }
 
-                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+  fun switchToPreviousSubtitle(): Single<List<Stream>> {
+    return service.previousSubtitle()
+  }
 
-                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-            })
-        }
-    }
+  fun toggleSubtitles(): Single<PlayerStatus> {
+    return service.toggleSubtitles()
+  }
 
-    fun forward10min(): Observable<PlayerStatus> {
-        return service.seek(10 * 60)
-    }
+  fun getStatus(): Single<PlayerStatus> {
+    return service.getStatus()
+  }
 
-    fun forward30sec(): Observable<PlayerStatus> {
-        return service.seek(30)
-    }
+  fun volumeUp(): Single<Volume> {
+    return service.volumeUp()
+  }
 
-    fun nextAudioTrack(): Observable<List<Stream>> {
-        return service.nextAudioTrack()
-    }
+  fun volumeDown(): Single<Volume> {
+    return service.volumeDown()
+  }
 
-    fun nextSubtitles(): Observable<List<Stream>> {
-        return service.nextSubtitles()
-    }
-
-    fun pause(): Observable<PlayerStatus> {
-        return service.pause()
-    }
-
-    fun play(): Observable<PlayerStatus> {
-        return service.play()
-    }
-
-    fun previousAudioTrack(): Observable<List<Stream>> {
-        return service.previousAudioTrack()
-    }
-
-    fun previousSubtitles(): Observable<List<Stream>> {
-        return service.previousSubtitles()
-    }
-
-    fun rewind10min(): Observable<PlayerStatus> {
-        return service.seek(-10 * 60)
-    }
-
-    fun rewind30sec(): Observable<PlayerStatus> {
-        return service.seek(-30)
-    }
-
-    fun saveMuteState(state: MuteState) {
-        toggleMute.tag = state
-    }
-
-    fun setMute(state: MuteState): Observable<Response<Void>> {
-        return if (state == MuteState.ON) service.mute() else service.unmute()
-    }
-
-    fun setPosition(pos: Int): Observable<PlayerStatus> {
-        return service.setPosition(pos)
-    }
-
-    fun status(): Observable<PlayerStatus> {
-        return service.status()
-    }
-
-    fun stop(): Observable<PlayerStatus> {
-        return service.stop()
-    }
-
-    fun toggleSubtitles(): Observable<Response<Void>> {
-        return service.toggleSubtitles()
-    }
-
-    fun volumeDown(): Observable<Volume> {
-        return service.volumeDown()
-    }
-
-    fun volumeUp(): Observable<Volume> {
-        return service.volumeUp()
-    }
+  fun toggleMute(): Single<PlayerStatus> {
+    return service.toggleMute()
+  }
 }
 

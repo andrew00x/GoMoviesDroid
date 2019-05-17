@@ -16,24 +16,24 @@
         android:focusableInTouchMode="true">
 
         <TextView
-            android:id="@+id/server_url_label"
+            android:id="@+id/server_name_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerInParent="true"
-            android:labelFor="@id/server_url_edit"
-            android:text="@string/server_url"
+            android:labelFor="@id/server_edit"
+            android:text="@string/server"
             android:textColor="@color/colorLightGray"
             android:textSize="14sp" />
 
         <EditText
-            android:id="@+id/server_url_edit"
+            android:id="@+id/server_edit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_centerInParent="true"
             android:layout_marginStart="8dp"
-            android:layout_toEndOf="@id/server_url_label"
+            android:layout_toEndOf="@id/server_name_label"
             android:background="@drawable/rounded_borders_edit_text"
             android:inputType="textUri"
             android:padding="8dp"
@@ -43,29 +43,32 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="16dp"
-        android:paddingTop="16dp">
+        android:focusable="true"
+        android:focusableInTouchMode="true">
 
         <TextView
-            android:id="@+id/save_playback_on_stop_label"
+            android:id="@+id/server_port_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerInParent="true"
-            android:layout_toEndOf="@id/save_playback_on_stop"
-            android:labelFor="@id/save_playback_on_stop"
-            android:text="@string/save_playback_on_stop"
+            android:labelFor="@id/port_edit"
+            android:text="@string/port"
             android:textColor="@color/colorLightGray"
             android:textSize="14sp" />
 
-        <CheckBox
-            android:id="@+id/save_playback_on_stop"
+        <EditText
+            android:id="@+id/port_edit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_centerInParent="true"
-            android:buttonTint="@color/colorLightGreen"
-            android:checked="false" />
+            android:layout_marginStart="8dp"
+            android:layout_toEndOf="@id/server_port_label"
+            android:background="@drawable/rounded_borders_edit_text"
+            android:inputType="number"
+            android:padding="8dp"
+            android:textSize="14sp" />
     </RelativeLayout>
 
     <RelativeLayout

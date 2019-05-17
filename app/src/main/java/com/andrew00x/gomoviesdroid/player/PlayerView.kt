@@ -6,10 +6,12 @@ import com.andrew00x.gomoviesdroid.Stream
 import com.andrew00x.gomoviesdroid.Volume
 
 interface PlayerView : BaseView, PlaybackListener {
-    fun showPlayingNow(playing: String)
-    fun showProgress(position: Int, duration: Int)
-    fun showVolume(vol: Volume)
-    fun showAudioStreams(audios: List<Stream>)
-    fun showSubtitles(subtitles: List<Stream>)
-    fun showMute(state: MuteState)
+  fun showPlayingNow(playing: String)
+  fun showProgress(position: Int, duration: Int)
+  fun showPaused(paused: Boolean)
+  fun showMuted(muted: Boolean)
+  fun showVolumeLevel(vol: Volume)
+  fun showAudioStreams(audios: List<Stream>)
+  fun showSubtitles(subtitles: List<Stream>)
+  fun showSubtitlesOff(off: Boolean)
 }
