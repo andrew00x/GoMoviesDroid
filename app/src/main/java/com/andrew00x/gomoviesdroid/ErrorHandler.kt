@@ -1,5 +1,6 @@
 package com.andrew00x.gomoviesdroid
 
+import com.andrew00x.gomoviesdroid.ui.BaseView
 import com.google.gson.Gson
 import retrofit2.HttpException
 

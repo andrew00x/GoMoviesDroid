@@ -1,8 +1,15 @@
 <resources>
     <string name="app_name">GoMoviesDroid</string>
-    <string name="search_field_placeholder">Search for movie…</string>
+    <string name="search_field_placeholder">Search for movie, enter title or genre…</string>
     <string name="server">Server</string>
     <string name="port">Port</string>
-    <string name="save_configuration">Save</string>
+    <string name="detail_langs">Detail Languages</string>
+    <string name="save">Save</string>
+    <string name="next">Next</string>
     <string name="default_error_message">Something went wrong</string>
+    <string name="empty_queue_message">No movies in queue</string>
+    <string name="playlist_list_empty_message">No playlists</string>
+    <string name="playlist_empty_message">No items</string>
+    <string name="movie_details_budget">Budget</string>
+    <string name="movie_details_revenue">Revenue</string>
 </resources>

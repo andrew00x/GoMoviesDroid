@@ -1,17 +1,36 @@
 package com.andrew00x.gomoviesdroid
 
+import io.reactivex.Completable
 import io.reactivex.Single
 import retrofit2.http.*
+import kotlin.math.log10
 
-data class Movie(
-    val id: Int,
-    val title: String,
-    val file: String,
-    val driveName: String,
-    val available: Boolean
+data class MovieData(
+    val id: Int = -1,
+    val title: String = "",
+    val file: String = "",
+    val drive: String = "",
+    val available: Boolean = false,
+    val details: MovieDetailsData? = null
 )
 
-data class PlayerStatus(val file: String,
+data class MovieDetailsData(
+  val budget: Long = 0,
+  val companies: List<String> = listOf(),
+  val countries: List<String> = listOf(),
+  val genres: List<String> = listOf(),
+  val originalTitle: String = "",
+  val overview: String = "",
+  val posterSmallUrl: String = "",
+  val posterLargeUrl: String = "",
+  val releaseDate: String = "",
+  val revenue: Long = 0,
+  val runtime: Int = 0,
+  val tagline: String = "",
+  val tmdbId: Int = -1
+)
+
+data class PlayerStatus(val file: String = "",
                         val duration: Int = 0,
                         val position: Int = 0,
                         val paused: Boolean = false,
@@ -25,7 +44,7 @@ data class PlayerStatus(val file: String,
 data class Position(val position: Int)
 
 data class Stream(
-    val index: Int,
+    val index: Int = -1,
     val lang: String = "",
     val name: String = "",
     val codec: String = "",
@@ -44,13 +63,13 @@ data class StreamIndex(val index: Int)
 data class Volume(val volume: Float) {
   fun toDisplayString(): String {
     // https://github.com/popcornmix/omxplayer#volume-rw
-    val dB = 20.0 * Math.log10(volume.toDouble())
+    val dB = 20.0 * log10(volume.toDouble())
     return "Volume: %.1fdB".format(dB)
   }
 }
 
 data class Playback(
-    val file: String,
+    val file: String = "",
     val position: Int = 0,
     val activeAudioTrack: Int = -1,
     val activeSubtitle: Int = -1
@@ -60,15 +79,34 @@ data class MoviePath(val file: String)
 
 interface GomoviesApi {
   @GET("list")
-  fun list(): Single<List<Movie>>
+  fun list(): Single<List<MovieData>>
 
-  @POST("search")
-  fun search(@Query("q") title: String): Single<List<Movie>>
+  @GET("search")
+  fun search(@Query("q") title: String): Single<List<MovieData>>
+
+  @GET("details")
+  fun details(@Query("id") id: Int, @Query("lang") lang: String): Single<MovieDetailsData>
+
+  @GET("details/search")
+  fun searchDetails(@Query("q") title: String): Single<List<MovieDetailsData>>
 
   @POST("play")
   fun play(@Body playback: Playback): Single<PlayerStatus>
 
-  fun enqueue(@Body movie: MoviePath)
+  @POST("enqueue")
+  fun enqueue(@Body movies: List<MoviePath>): Single<List<MoviePath>>
+
+  @GET("queue")
+  fun queue(): Single<List<MoviePath>>
+
+  @POST("dequeue")
+  fun dequeue(@Body position: Position): Single<List<MoviePath>>
+
+  @POST("clearqueue")
+  fun clearQueue(): Completable
+
+  @POST("shiftqueue")
+  fun shiftQueue(@Body position: Position): Single<List<MoviePath>>
 
   @POST("player/play")
   fun play(): Single<PlayerStatus>
@@ -130,4 +168,3 @@ interface GomoviesApi {
   @POST("player/volumeup")
   fun volumeUp(): Single<Volume>
 }
-

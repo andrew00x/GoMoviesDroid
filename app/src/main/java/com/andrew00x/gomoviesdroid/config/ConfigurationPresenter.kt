@@ -1,45 +1,36 @@
 package com.andrew00x.gomoviesdroid.config
 
-import android.annotation.SuppressLint
 import com.andrew00x.gomoviesdroid.ErrorHandler
-import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers.io
-import javax.inject.Inject
+import java.lang.Exception
 
-class ConfigurationPresenter @Inject constructor(
-    private val configurationModel: ConfigurationModel,
+class ConfigurationPresenter(
+    private val model: ConfigurationModel,
+    private val listener: ConfigurationListener,
     private val errorHandler: ErrorHandler) {
   private val subscriptions = CompositeDisposable()
-  private var configuration: Configuration? = null
 
-  fun attach(view: ConfigurationView, events: ConfigurationEventSource) {
-    subscriptions.add(events.changeServer().subscribe { value -> configuration?.server = value })
-    subscriptions.add(events.changePort().subscribe { value -> configuration?.port = if (value.isBlank()) 80 else value.toInt() })
-    subscriptions.add(events.clickOnSaveConfiguration().subscribe {
-      configurationModel.save(configuration!!).subscribeOn(io()).observeOn(mainThread())
-          .subscribe(
-              { view.onConfigurationSaved() },
-              { err -> errorHandler.handleError(view, err) }
-          )
+  fun attach(view: ConfigurationView) {
+    try {
+      val config = model.get()
+      view.setServer(config.server)
+      view.setPort(config.port)
+      view.setDetailLanguages(config.detailLangs)
+    } catch (e: Exception) {
+      errorHandler.handleError(view, e)
+    }
+    subscriptions.add(view.clickOnSave().subscribe {
+      try {
+        val config = Configuration(view.getServer(), view.getPort(), view.getDetailLanguages())
+        model.save(config)
+        listener.afterSave(config)
+      } catch (e: Exception) {
+        errorHandler.handleError(view, e)
+      }
     })
-    refresh(view)
   }
 
   fun detach() {
-    subscriptions.dispose()
-    configuration = null
-  }
-
-  @SuppressLint("CheckResult")
-  fun refresh(view: ConfigurationView) {
-    configurationModel.read().subscribeOn(io()).observeOn(mainThread())
-        .subscribe({ config ->
-          ConfigurationPresenter@ this.configuration = config
-          view.showServer(config.server)
-          view.showPort(config.port)
-        }, { err ->
-          errorHandler.handleError(view, err)
-        })
+    subscriptions.clear()
   }
 }

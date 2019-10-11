@@ -1,108 +1,76 @@
 package com.andrew00x.gomoviesdroid.config
 
-import assertk.assertThat
-import assertk.assertions.isEqualTo
 import com.andrew00x.gomoviesdroid.ErrorHandler
 import com.andrew00x.gomoviesdroid.Event
-import com.andrew00x.gomoviesdroid.SchedulersSetup
-import io.reactivex.Single
-import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.InjectMocks
-import org.mockito.Mockito.`when` as whenInvoke
+import org.mockito.Mockito
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.reset
+import org.mockito.Mockito.`when` as whenInvoke
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
 class ConfigurationPresenterTest {
-  @JvmField
-  @Rule
-  val schedulers = SchedulersSetup()
+  @Mock private lateinit var model: ConfigurationModel
+  @Mock private lateinit var listener: ConfigurationListener
+  @Mock private lateinit var errorHandler: ErrorHandler
+  @Mock private lateinit var view: ConfigurationView
+  @InjectMocks private lateinit var underTest: ConfigurationPresenter
+  private lateinit var clickOnSave: Event<Any>
 
-  @Mock lateinit var model: ConfigurationModel
-  @Mock lateinit var errorHandler: ErrorHandler
-  @Mock lateinit var view: ConfigurationView
-  @Mock lateinit var events: ConfigurationEventSource
-  @InjectMocks lateinit var presenter: ConfigurationPresenter
-
-  private lateinit var changeServer: Event<String>
-  private lateinit var changePort: Event<String>
-  private lateinit var clickOnSaveConfiguration: Event<Any>
-  private lateinit var configuration: Configuration
-
-  @Before
-  fun setup() {
-    changeServer = Event()
-    changePort = Event()
-    clickOnSaveConfiguration = Event()
-    configuration = Configuration("", 80)
-
-    whenInvoke(model.read()).thenReturn(Single.just(configuration))
-    whenInvoke(events.changeServer()).thenReturn(changeServer)
-    whenInvoke(events.changePort()).thenReturn(changePort)
-    whenInvoke(events.clickOnSaveConfiguration()).thenReturn(clickOnSaveConfiguration)
+  @Before fun setup() {
+    clickOnSave = Event()
+    whenInvoke(view.clickOnSave()).thenReturn(clickOnSave)
   }
 
-  @After
-  fun cleanup() {
-    presenter.detach()
+  @Test fun `sets view with values when attach`() {
+    val config = Configuration("gomovies.local", 8000, setOf("en"))
+    whenInvoke(model.get()).thenReturn(config)
+    underTest.attach(view)
+    verify(view).setServer("gomovies.local")
+    verify(view).setPort(8000)
+    verify(view).setDetailLanguages(setOf("en"))
   }
 
-  @Test
-  fun `change server`() {
-    presenter.attach(view, events)
-    reset(view)
-
-    changeServer.send("my-movies")
-
-    assertThat(configuration.server).isEqualTo("my-movies")
+  @Test fun `notifies about error occurred while read configuration`() {
+    val error = RuntimeException()
+    whenInvoke(model.get()).thenThrow(error)
+    underTest.attach(view)
+    verify(errorHandler).handleError(view, error)
   }
 
-  @Test
-  fun `change port`() {
-    presenter.attach(view, events)
-    reset(view)
+  @Test fun `saves config when saved button is clicked`() {
+    whenInvoke(model.get()).thenReturn(Configuration("gomovies.local", 8000, setOf("en")))
+    whenInvoke(view.getServer()).thenReturn("gomovies.local2")
+    whenInvoke(view.getPort()).thenReturn(8001)
+    whenInvoke(view.getDetailLanguages()).thenReturn(setOf("en", "ua"))
+    underTest.attach(view)
 
-    changePort.send("1234")
+    clickOnSave.send(Unit)
 
-    assertThat(configuration.port).isEqualTo(1234)
+    val updated = Configuration("gomovies.local2", 8001, setOf("en", "ua"))
+    val inOrder = Mockito.inOrder(model, listener)
+    inOrder.verify(model).save(updated)
+    inOrder.verify(listener).afterSave(updated)
   }
 
-  @Test
-  fun `save configuration`() {
-    presenter.attach(view, events)
-    reset(view)
-    whenInvoke(model.save(configuration)).thenReturn(Single.just(Unit))
+  @Test fun `notifies about error occurred while save configuration`() {
+    val config = Configuration("gomovies.local", 8000, setOf("en"))
+    val error = RuntimeException()
+    whenInvoke(model.get()).thenReturn(config)
+    whenInvoke(view.getServer()).thenReturn(config.server)
+    whenInvoke(view.getPort()).thenReturn(config.port)
+    whenInvoke(view.getDetailLanguages()).thenReturn(config.detailLangs)
+    whenInvoke(model.save(config)).thenThrow(error)
+    underTest.attach(view)
 
-    clickOnSaveConfiguration.send(Unit)
+    clickOnSave.send(Unit)
 
-    verify(model).save(configuration)
-  }
-
-  @Test
-  fun `notify ErrorHandler when error occurred while read configuration`() {
-    val err = RuntimeException("failed")
-    whenInvoke(model.read()).thenReturn(Single.error(err))
-
-    presenter.attach(view, events)
-
-    verify(errorHandler).handleError(view, err)
-  }
-
-  @Test
-  fun `notify ErrorHandler when error occurred while save configuration`() {
-    presenter.attach(view, events)
-    reset(view)
-    val err = RuntimeException("failed")
-    whenInvoke(model.save(configuration)).thenReturn(Single.error(err))
-
-    clickOnSaveConfiguration.send(Unit)
-
-    verify(errorHandler).handleError(view, err)
+    verify(errorHandler).handleError(view, error)
+    verify(listener, never()).afterSave(config)
   }
 }

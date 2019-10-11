@@ -20,7 +20,6 @@ class PlayerPresenterTest {
   val schedulers = SchedulersSetup()
 
   @Mock lateinit var view: PlayerView
-  @Mock lateinit var events: PlayerEventSource
   @Mock lateinit var errorHandler: ErrorHandler
   @Mock lateinit var model: PlayerModel
   @InjectMocks lateinit var presenter: PlayerPresenter
@@ -43,8 +42,7 @@ class PlayerPresenterTest {
   private lateinit var toggleMuteEvent: Event<Any>
   private lateinit var toggleSubtitlesEvent: Event<Any>
 
-  @Before
-  fun setup() {
+  @Before fun setup() {
     whenInvoke(model.getStatus()).thenReturn(Single.just(PlayerStatus(file = "")))
     refreshEvent = Event()
     playPauseEvent = Event()
@@ -66,24 +64,12 @@ class PlayerPresenterTest {
     mockEventSource()
   }
 
-  @After
-  fun cleanup() {
+  @After fun cleanup() {
     presenter.detach()
   }
 
-  @Test
-  fun `refresh on attach`() {
-    val status = PlayerStatus(file = "/movies/Brave heart.mkv", position = sec(30), duration = sec(150), muted = true)
-    whenInvoke(model.getStatus()).thenReturn(Single.just(status))
-
-    presenter.attach(view, events)
-
-    assertViewUpdated(status)
-  }
-
-  @Test
-  fun `refresh on refresh event`() {
-    presenter.attach(view, events)
+  @Test fun `refresh on refresh event`() {
+    presenter.attach(view)
     reset(view)
     val status = PlayerStatus(file = "/movies/Brave heart.mkv", position = sec(30), duration = sec(150), muted = true)
     whenInvoke(model.getStatus()).thenReturn(Single.just(status))
@@ -93,21 +79,8 @@ class PlayerPresenterTest {
     assertViewUpdated(status)
   }
 
-  @Test
-  fun refresh() {
-    presenter.attach(view, events)
-    reset(view)
-    val status = PlayerStatus(file = "/movies/Brave heart.mkv", position = sec(30), duration = sec(150), muted = true)
-    whenInvoke(model.getStatus()).thenReturn(Single.just(status))
-
-    presenter.refresh(view)
-
-    assertViewUpdated(status)
-  }
-
-  @Test
-  fun `toggle play | pause`() {
-    presenter.attach(view, events)
+  @Test fun `toggle play | pause`() {
+    presenter.attach(view)
     reset(view)
     val status = PlayerStatus(file = "/movies/Brave heart.mkv", position = 0, duration = sec(150))
     whenInvoke(model.playPause()).thenReturn(Single.just(status))
@@ -117,9 +90,8 @@ class PlayerPresenterTest {
     assertViewUpdated(status)
   }
 
-  @Test
-  fun stop() {
-    presenter.attach(view, events)
+  @Test fun stop() {
+    presenter.attach(view)
     reset(view)
     val status = PlayerStatus(file = "/movies/brave heart.mkv", stopped = true)
     whenInvoke(model.stop()).thenReturn(Single.just(status))
@@ -129,9 +101,8 @@ class PlayerPresenterTest {
     assertViewUpdated(status)
   }
 
-  @Test
-  fun replay() {
-    presenter.attach(view, events)
+  @Test fun replay() {
+    presenter.attach(view)
     reset(view)
     val status = PlayerStatus(file = "/movies/brave heart.mkv")
     whenInvoke(model.replay()).thenReturn(Single.just(status))
@@ -141,9 +112,8 @@ class PlayerPresenterTest {
     assertViewUpdated(status)
   }
 
-  @Test
-  fun `forward 10 min`() {
-    presenter.attach(view, events)
+  @Test fun `forward 10 min`() {
+    presenter.attach(view)
     reset(view)
     val status = PlayerStatus(file = "/movies/Brave heart.mkv", position = sec(20), duration = sec(150))
     whenInvoke(model.forward(sec(10))).thenReturn(Single.just(status))
@@ -153,9 +123,8 @@ class PlayerPresenterTest {
     assertViewUpdated(status)
   }
 
-  @Test
-  fun `rewind 10 min`() {
-    presenter.attach(view, events)
+  @Test fun `rewind 10 min`() {
+    presenter.attach(view)
     reset(view)
     val status = PlayerStatus(file = "/movies/Brave heart.mkv", position = sec(10), duration = sec(150))
     whenInvoke(model.rewind(sec(10))).thenReturn(Single.just(status))
@@ -165,9 +134,8 @@ class PlayerPresenterTest {
     assertViewUpdated(status)
   }
 
-  @Test
-  fun `forward 30 sec`() {
-    presenter.attach(view, events)
+  @Test fun `forward 30 sec`() {
+    presenter.attach(view)
     reset(view)
     val status = PlayerStatus(file = "/movies/Brave heart.mkv", position = 60, duration = sec(150))
     whenInvoke(model.forward(30)).thenReturn(Single.just(status))
@@ -177,9 +145,8 @@ class PlayerPresenterTest {
     assertViewUpdated(status)
   }
 
-  @Test
-  fun `rewind 30 sec`() {
-    presenter.attach(view, events)
+  @Test fun `rewind 30 sec`() {
+    presenter.attach(view)
     reset(view)
     val status = PlayerStatus(file = "/movies/Brave heart.mkv", position = 30, duration = sec(150))
     whenInvoke(model.rewind(30)).thenReturn(Single.just(status))
@@ -189,9 +156,8 @@ class PlayerPresenterTest {
     assertViewUpdated(status)
   }
 
-  @Test
-  fun `seek position`() {
-    presenter.attach(view, events)
+  @Test fun `seek position`() {
+    presenter.attach(view)
     reset(view)
     val pos = sec(33)
     val status = PlayerStatus(file = "/movies/Brave heart.mkv", position = pos, duration = sec(150))
@@ -204,9 +170,8 @@ class PlayerPresenterTest {
     assertViewUpdated(status)
   }
 
-  @Test
-  fun `volume up`() {
-    presenter.attach(view, events)
+  @Test fun `volume up`() {
+    presenter.attach(view)
     reset(view)
     val vol = Volume(0.8F)
     whenInvoke(model.volumeUp()).thenReturn(Single.just(vol))
@@ -218,9 +183,8 @@ class PlayerPresenterTest {
     verify(view).showVolumeLevel(vol)
   }
 
-  @Test
-  fun `volume down`() {
-    presenter.attach(view, events)
+  @Test fun `volume down`() {
+    presenter.attach(view)
     reset(view)
     val vol = Volume(0.5F)
     whenInvoke(model.volumeDown()).thenReturn(Single.just(vol))
@@ -232,9 +196,8 @@ class PlayerPresenterTest {
     verify(view).showVolumeLevel(vol)
   }
 
-  @Test
-  fun `next audio track`() {
-    presenter.attach(view, events)
+  @Test fun `next audio track`() {
+    presenter.attach(view)
     reset(view)
     val audios = listOf(Stream(index = 1, lang = "ukr"), Stream(index = 2, lang = "en", active = true))
     whenInvoke(model.switchToNextAudioTrack()).thenReturn(Single.just(audios))
@@ -246,9 +209,8 @@ class PlayerPresenterTest {
     verify(view).showAudioStreams(audios)
   }
 
-  @Test
-  fun `previous audio track`() {
-    presenter.attach(view, events)
+  @Test fun `previous audio track`() {
+    presenter.attach(view)
     reset(view)
     val audios = listOf(Stream(index = 1, lang = "ukr", active = true), Stream(index = 2, lang = "en"))
     whenInvoke(model.switchToPreviousAudioTrack()).thenReturn(Single.just(audios))
@@ -260,9 +222,8 @@ class PlayerPresenterTest {
     verify(view).showAudioStreams(audios)
   }
 
-  @Test
-  fun `next subtitle`() {
-    presenter.attach(view, events)
+  @Test fun `next subtitle`() {
+    presenter.attach(view)
     reset(view)
     val subs = listOf(Stream(index = 1, lang = "ukr"), Stream(index = 2, lang = "en", active = true))
     whenInvoke(model.switchToNextSubtitle()).thenReturn(Single.just(subs))
@@ -274,9 +235,8 @@ class PlayerPresenterTest {
     verify(view).showSubtitles(subs)
   }
 
-  @Test
-  fun `previous subtitle`() {
-    presenter.attach(view, events)
+  @Test fun `previous subtitle`() {
+    presenter.attach(view)
     reset(view)
     val subs = listOf(Stream(index = 1, lang = "ukr", active = true), Stream(index = 2, lang = "en"))
     whenInvoke(model.switchToPreviousSubtitle()).thenReturn(Single.just(subs))
@@ -288,9 +248,8 @@ class PlayerPresenterTest {
     verify(view).showSubtitles(subs)
   }
 
-  @Test
-  fun `toggle mute`() {
-    presenter.attach(view, events)
+  @Test fun `toggle mute`() {
+    presenter.attach(view)
     reset(view)
     val status = PlayerStatus(file = "/movies/Brave heart.mkv", muted = true)
     whenInvoke(model.toggleMute()).thenReturn(Single.just(status))
@@ -302,9 +261,8 @@ class PlayerPresenterTest {
     verify(view).showMuted(true)
   }
 
-  @Test
-  fun `toggle subtitles`() {
-    presenter.attach(view, events)
+  @Test fun `toggle subtitles`() {
+    presenter.attach(view)
     reset(view)
     val status = PlayerStatus(file = "/movies/Brave heart.mkv", subtitlesOff = true)
     whenInvoke(model.toggleSubtitles()).thenReturn(Single.just(status))
@@ -316,23 +274,8 @@ class PlayerPresenterTest {
     verify(view).showSubtitlesOff(true)
   }
 
-  @Test
-  fun `handle error occurred while refresh`() {
-    presenter.attach(view, events)
-    reset(view)
-    val err = RuntimeException("failed")
-    whenInvoke(model.getStatus()).thenReturn(Single.error(err))
-
-    presenter.refresh(view)
-
-    verify(view).showLoader()
-    verify(view).hideLoader()
-    verify(errorHandler).handleError(view, err)
-  }
-
-  @Test
-  fun `handle error occurred on refresh event`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred on refresh event`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.getStatus()).thenReturn(Single.error(err))
@@ -344,9 +287,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while toggle play | pause`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while toggle play | pause`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.playPause()).thenReturn(Single.error(err))
@@ -358,9 +300,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while stop`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while stop`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.stop()).thenReturn(Single.error(err))
@@ -372,9 +313,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while move forward 10 min`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while move forward 10 min`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.forward(sec(10))).thenReturn(Single.error(err))
@@ -386,9 +326,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while move forward 30 sec`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while move forward 30 sec`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.forward(30)).thenReturn(Single.error(err))
@@ -400,9 +339,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while rewind 10 min`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while rewind 10 min`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.rewind(sec(10))).thenReturn(Single.error(err))
@@ -414,9 +352,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while rewind 30 sec`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while rewind 30 sec`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.rewind(30)).thenReturn(Single.error(err))
@@ -428,9 +365,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while change position`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while change position`() {
+    presenter.attach(view)
     reset(view)
     val pos = sec(33)
     val err = RuntimeException("failed")
@@ -445,9 +381,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while volume up`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while volume up`() {
+    presenter.attach(view)
     reset(view)
     val pos = sec(33)
     val err = RuntimeException("failed")
@@ -460,9 +395,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while volume down`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while volume down`() {
+    presenter.attach(view)
     reset(view)
     val pos = sec(33)
     val err = RuntimeException("failed")
@@ -475,9 +409,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while switch to next audio track`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while switch to next audio track`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.switchToNextAudioTrack()).thenReturn(Single.error(err))
@@ -489,9 +422,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while switch to previous audio track`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while switch to previous audio track`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.switchToPreviousAudioTrack()).thenReturn(Single.error(err))
@@ -502,9 +434,8 @@ class PlayerPresenterTest {
     verify(view).hideLoader()
     verify(errorHandler).handleError(view, err)
   }
-  @Test
-  fun `handle error occurred while switch to next subtitle`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while switch to next subtitle`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.switchToNextSubtitle()).thenReturn(Single.error(err))
@@ -516,9 +447,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while switch to previous subtitle`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while switch to previous subtitle`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.switchToPreviousSubtitle()).thenReturn(Single.error(err))
@@ -530,9 +460,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while toggle mute`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while toggle mute`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.toggleMute()).thenReturn(Single.error(err))
@@ -544,9 +473,8 @@ class PlayerPresenterTest {
     verify(errorHandler).handleError(view, err)
   }
 
-  @Test
-  fun `handle error occurred while toggle subtitles`() {
-    presenter.attach(view, events)
+  @Test fun `handle error occurred while toggle subtitles`() {
+    presenter.attach(view)
     reset(view)
     val err = RuntimeException("failed")
     whenInvoke(model.toggleSubtitles()).thenReturn(Single.error(err))
@@ -559,29 +487,29 @@ class PlayerPresenterTest {
   }
 
   private fun mockEventSource() {
-    whenInvoke(events.clickRefresh()).thenReturn(refreshEvent)
-    whenInvoke(events.clickPlayPause()).thenReturn(playPauseEvent)
-    whenInvoke(events.clickStop()).thenReturn(stopEvent)
-    whenInvoke(events.clickReplay()).thenReturn(replayEvent)
-    whenInvoke(events.clickForward10min()).thenReturn(forward10minEvent)
-    whenInvoke(events.clickRewind10min()).thenReturn(rewind10minEvent)
-    whenInvoke(events.clickForward30sec()).thenReturn(forward30secEvent)
-    whenInvoke(events.clickRewind30sec()).thenReturn(rewind30secEvent)
-    whenInvoke(events.clickVolumeUp()).thenReturn(volumeUpEvent)
-    whenInvoke(events.clickVolumeDown()).thenReturn(volumeDownEvent)
-    whenInvoke(events.clickNextAudioTrack()).thenReturn(nextAudioTrackEvent)
-    whenInvoke(events.clickPreviousAudioTrack()).thenReturn(previousAudioTrackEvent)
-    whenInvoke(events.clickNextSubtitles()).thenReturn(nextSubtitleEvent)
-    whenInvoke(events.clickPreviousSubtitles()).thenReturn(previousSubtitleEvent)
-    whenInvoke(events.clickToggleMute()).thenReturn(toggleMuteEvent)
-    whenInvoke(events.clickToggleSubtitles()).thenReturn(toggleSubtitlesEvent)
-    whenInvoke(events.seekPosition()).thenReturn(seekPositionEvent)
+    whenInvoke(view.clickRefresh()).thenReturn(refreshEvent)
+    whenInvoke(view.clickPlayPause()).thenReturn(playPauseEvent)
+    whenInvoke(view.clickStop()).thenReturn(stopEvent)
+    whenInvoke(view.clickReplay()).thenReturn(replayEvent)
+    whenInvoke(view.clickForward10min()).thenReturn(forward10minEvent)
+    whenInvoke(view.clickRewind10min()).thenReturn(rewind10minEvent)
+    whenInvoke(view.clickForward30sec()).thenReturn(forward30secEvent)
+    whenInvoke(view.clickRewind30sec()).thenReturn(rewind30secEvent)
+    whenInvoke(view.clickVolumeUp()).thenReturn(volumeUpEvent)
+    whenInvoke(view.clickVolumeDown()).thenReturn(volumeDownEvent)
+    whenInvoke(view.clickNextAudioTrack()).thenReturn(nextAudioTrackEvent)
+    whenInvoke(view.clickPreviousAudioTrack()).thenReturn(previousAudioTrackEvent)
+    whenInvoke(view.clickNextSubtitles()).thenReturn(nextSubtitleEvent)
+    whenInvoke(view.clickPreviousSubtitles()).thenReturn(previousSubtitleEvent)
+    whenInvoke(view.clickToggleMute()).thenReturn(toggleMuteEvent)
+    whenInvoke(view.clickToggleSubtitles()).thenReturn(toggleSubtitlesEvent)
+    whenInvoke(view.seekPosition()).thenReturn(seekPositionEvent)
   }
 
   private fun assertViewUpdated(status: PlayerStatus) {
     verify(view).showLoader()
     verify(view).hideLoader()
-    verify(view).showPlayingNow(status.file.substringAfterLast('/'))
+    verify(view).showPlayingNow(if (status.stopped) "" else status.file.substringAfterLast('/'))
     verify(view).showProgress(status.position, status.duration)
     verify(view).showMuted(status.muted)
     verify(view).showPaused(status.paused)

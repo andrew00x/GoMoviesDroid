@@ -1,6 +1,5 @@
 package com.andrew00x.gomoviesdroid.player
 
-import android.annotation.SuppressLint
 import com.andrew00x.gomoviesdroid.*
 import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
 import io.reactivex.disposables.CompositeDisposable
@@ -13,168 +12,174 @@ class PlayerPresenter @Inject constructor(
     private val errorHandler: ErrorHandler) {
   private val subscriptions: CompositeDisposable = CompositeDisposable()
 
-  fun attach(view: PlayerView, events: PlayerEventSource) {
-    subscriptions.add(events.clickRefresh().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+  fun attach(view: PlayerView) {
+    subscriptions.add(view.clickRefresh().subscribe {
+      view.showLoader()
       player.getStatus().subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<PlayerStatus>(
-              { status -> view.hideLoader(); updateStatus(view, status) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { status -> updateStatus(view, status) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickPlayPause().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickPlayPause().subscribe {
+      view.showLoader()
       player.playPause().subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<PlayerStatus>(
-              { status -> view.hideLoader(); updateStatus(view, status) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { status -> updateStatus(view, status) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickStop().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickStop().subscribe {
+      view.showLoader()
       player.stop().subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<PlayerStatus>(
-              { status -> view.hideLoader(); updateStatus(view, status) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { status -> updateStatus(view, status) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickReplay().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickReplay().subscribe {
+      view.showLoader()
       player.replay().subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<PlayerStatus>(
-              { status -> view.hideLoader(); updateStatus(view, status) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { status -> updateStatus(view, status) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickForward10min().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickForward10min().subscribe {
+      view.showLoader()
       player.forward(10 * 60).subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<PlayerStatus>(
-              { status -> view.hideLoader(); updateStatus(view, status) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { status -> updateStatus(view, status) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickRewind10min().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickRewind10min().subscribe {
+      view.showLoader()
       player.rewind(10 * 60).subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<PlayerStatus>(
-              { status -> view.hideLoader(); updateStatus(view, status) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { status -> updateStatus(view, status) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickForward30sec().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickForward30sec().subscribe {
+      view.showLoader()
       player.forward(30).subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<PlayerStatus>(
-              { status -> view.hideLoader(); updateStatus(view, status) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { status -> updateStatus(view, status) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickRewind30sec().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickRewind30sec().subscribe {
+      view.showLoader()
       player.rewind(30).subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<PlayerStatus>(
-              { status -> view.hideLoader(); updateStatus(view, status) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { status -> updateStatus(view, status) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickVolumeUp().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickVolumeUp().subscribe {
+      view.showLoader()
       player.volumeUp().subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<Volume>(
-              { vol -> view.hideLoader(); view.showVolumeLevel(vol) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { vol -> view.showVolumeLevel(vol) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickVolumeDown().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickVolumeDown().subscribe {
+      view.showLoader()
       player.volumeDown().subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<Volume>(
-              { vol -> view.hideLoader(); view.showVolumeLevel(vol) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { vol -> view.showVolumeLevel(vol) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickNextAudioTrack().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickNextAudioTrack().subscribe {
+      view.showLoader()
       player.switchToNextAudioTrack().subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<List<Stream>>(
-              { tracks -> view.hideLoader(); view.showAudioStreams(tracks) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { tracks -> view.showAudioStreams(tracks) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickPreviousAudioTrack().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickPreviousAudioTrack().subscribe {
+      view.showLoader()
       player.switchToPreviousAudioTrack().subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<List<Stream>>(
-              { tracks -> view.hideLoader(); view.showAudioStreams(tracks) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { tracks -> view.showAudioStreams(tracks) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickNextSubtitles().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickNextSubtitles().subscribe {
+      view.showLoader()
       player.switchToNextSubtitle().subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<List<Stream>>(
-              { subs -> view.hideLoader(); view.showSubtitles(subs) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { subs -> view.showSubtitles(subs) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickPreviousSubtitles().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickPreviousSubtitles().subscribe {
+      view.showLoader()
       player.switchToPreviousSubtitle().subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<List<Stream>>(
-              { subs -> view.hideLoader(); view.showSubtitles(subs) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { subs -> view.showSubtitles(subs) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickToggleMute().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickToggleMute().subscribe {
+      view.showLoader()
       player.toggleMute().subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<PlayerStatus>(
-              { status -> view.hideLoader(); updateStatus(view, status) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { status -> updateStatus(view, status) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.clickToggleSubtitles().subscribe {
-      mainThread().scheduleDirect { view.showLoader() }
+    subscriptions.add(view.clickToggleSubtitles().subscribe {
+      view.showLoader()
       player.toggleSubtitles().subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<PlayerStatus>(
-              { status -> view.hideLoader(); updateStatus(view, status) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { status -> updateStatus(view, status) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.seekPosition().debounce(150, TimeUnit.MILLISECONDS).subscribe { pos ->
+    subscriptions.add(view.seekPosition().debounce(150, TimeUnit.MILLISECONDS).subscribe { pos ->
       mainThread().scheduleDirect { view.showLoader() }
       player.setPosition(pos).subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<PlayerStatus>(
-              { status -> view.hideLoader(); updateStatus(view, status) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { status -> updateStatus(view, status) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    refresh(view)
   }
 
   fun detach() {
-    subscriptions.dispose()
-  }
-
-  @SuppressLint("CheckResult")
-  fun refresh(view: PlayerView) {
-    view.showLoader()
-    player.getStatus().subscribeOn(io()).observeOn(mainThread())
-        .subscribeWith(DefaultObserver<PlayerStatus>(
-            { status -> view.hideLoader(); updateStatus(view, status) },
-            { err -> view.hideLoader(); errorHandler.handleError(view, err) }
-        ))
+    subscriptions.clear()
   }
 
   private fun updateStatus(view: PlayerView, status: PlayerStatus) {
-    view.showPlayingNow(status.file.substringAfterLast('/'))
-    view.showProgress(status.position, status.duration)
+    view.showPlayingNow(if (status.stopped) "" else status.file.substringAfterLast('/'))
+    view.showProgress(
+        if (status.stopped) 0 else status.position,
+        if (status.stopped) 0 else status.duration
+    )
     view.showPaused(status.paused)
     view.showMuted(status.muted)
     view.showSubtitlesOff(status.subtitlesOff)
-    if (status.stopped) {
-      view.onPlaybackStopped()
-    }
   }
 }

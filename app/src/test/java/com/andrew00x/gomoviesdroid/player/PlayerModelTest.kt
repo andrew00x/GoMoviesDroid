@@ -1,217 +1,189 @@
 package com.andrew00x.gomoviesdroid.player
 
 import assertk.assertThat
-import assertk.assertions.isEqualTo
-import assertk.assertions.isSameAs
+import assertk.assertions.*
+import com.activeandroid.query.Select
 import com.andrew00x.gomoviesdroid.*
 import io.reactivex.Single
-import io.reactivex.observers.TestObserver
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.InjectMocks
-import org.mockito.Mock
-import org.mockito.Mockito.verify
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.Mockito.mock
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.mockito.Mockito.`when` as whenInvoke
 
-@RunWith(MockitoJUnitRunner::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [26], application = TestApplication::class, manifest = Config.NONE)
 class PlayerModelTest {
-  @Mock lateinit var service: GomoviesService
-  @Mock lateinit var playbacks: PlaybackRepository
-  @InjectMocks lateinit var model: PlayerModel
+  private lateinit var service: GomoviesService
+  private lateinit var underTest: PlayerModel
 
-  @Test
-  fun `play movie`() {
+  @Before fun setup() {
+    service = mock(GomoviesService::class.java)
+    whenInvoke(service.clearQueue()).thenReturn(Single.just(Unit))
+    underTest = PlayerModel(service)
+  }
+
+  @Test fun `plays movie`() {
     val playback = Playback("/movies/brave heart.mkv")
     val status = PlayerStatus(file = "/movies/brave heart.mkv")
     whenInvoke(service.play(playback)).thenReturn(Single.just(status))
-    assertThat(model.play("/movies/brave heart.mkv").blockingGet()).isEqualTo(status)
+    assertThat(underTest.play("/movies/brave heart.mkv").blockingGet()).isEqualTo(status)
   }
 
-  @Test
-  fun `seek forward`() {
+  @Test fun `plays movie starting from existing playback`() {
+    val playbackData = AAPlayback(file  = "/movies/brave heart.mkv", position = 123, activeAudioTrack = 1, activeSubtitle = 2)
+    playbackData.save()
+    val playback = Playback(file  = "/movies/brave heart.mkv", position = 123, activeAudioTrack = 1, activeSubtitle = 2)
     val status = PlayerStatus(file = "/movies/brave heart.mkv")
-    whenInvoke(service.seek(anyInt())).thenReturn(Single.just(status))
-
-    val observer = TestObserver<PlayerStatus>()
-    model.forward(600).subscribe(observer)
-
-    verify(service).seek(600)
-    assertThat(observer.values()[0]).isSameAs(status)
+    whenInvoke(service.play(playback)).thenReturn(Single.just(status))
+    assertThat(underTest.play("/movies/brave heart.mkv").blockingGet()).isEqualTo(status)
   }
 
-  @Test
-  fun rewind() {
+  @Test fun `seeks forward`() {
     val status = PlayerStatus(file = "/movies/brave heart.mkv")
-    whenInvoke(service.seek(anyInt())).thenReturn(Single.just(status))
-
-    val observer = TestObserver<PlayerStatus>()
-    model.rewind(600).subscribe(observer)
-
-    verify(service).seek(-600)
-    assertThat(observer.values()[0]).isSameAs(status)
+    whenInvoke(service.seek(600)).thenReturn(Single.just(status))
+    assertThat(underTest.forward(600).blockingGet()).isEqualTo(status)
   }
 
-  @Test
-  fun `switch to next subtitles`() {
-    val audios = listOf<Stream>()
-    whenInvoke(service.nextSubtitle()).thenReturn(Single.just(audios))
-
-    val observer = TestObserver<List<Stream>>()
-    model.switchToNextSubtitle().subscribe(observer)
-
-    assertThat(observer.values()[0]).isSameAs(audios)
+  @Test fun rewinds() {
+    val status = PlayerStatus(file = "/movies/brave heart.mkv")
+    whenInvoke(service.seek(-600)).thenReturn(Single.just(status))
+    assertThat(underTest.rewind(600).blockingGet()).isEqualTo(status)
   }
 
-  @Test
-  fun `switch to previous audio track`() {
-    val audios = listOf<Stream>()
+  @Test fun `switches to next subtitles`() {
+    val subs = listOf(Stream(index = 1, lang = "ukr"), Stream(index = 2, lang = "en", active = true))
+    whenInvoke(service.nextSubtitle()).thenReturn(Single.just(subs))
+    assertThat(underTest.switchToNextSubtitle().blockingGet()).isEqualTo(subs)
+  }
+
+  @Test fun `switches to previous subtitle`() {
+    val subs = listOf(Stream(index = 1, lang = "ukr", active = true), Stream(index = 2, lang = "en"))
+    whenInvoke(service.previousSubtitle()).thenReturn(Single.just(subs))
+    assertThat(underTest.switchToPreviousSubtitle().blockingGet()).isEqualTo(subs)
+  }
+
+  @Test fun `switches to next audio track`() {
+    val audios = listOf(Stream(index = 1, lang = "ukr"), Stream(index = 2, lang = "en", active = true))
+    whenInvoke(service.nextAudioTrack()).thenReturn(Single.just(audios))
+    assertThat(underTest.switchToNextAudioTrack().blockingGet()).isEqualTo(audios)
+  }
+
+  @Test fun `switches to previous audio track`() {
+    val audios = listOf(Stream(index = 1, lang = "ukr", active = true), Stream(index = 2, lang = "en"))
     whenInvoke(service.previousAudioTrack()).thenReturn(Single.just(audios))
-
-    val observer = TestObserver<List<Stream>>()
-    model.switchToPreviousAudioTrack().subscribe(observer)
-
-    assertThat(observer.values()[0]).isSameAs(audios)
+    assertThat(underTest.switchToPreviousAudioTrack().blockingGet()).isEqualTo(audios)
   }
 
-  @Test
-  fun `switch to previous subtitle`() {
-    val audios = listOf<Stream>()
-    whenInvoke(service.previousSubtitle()).thenReturn(Single.just(audios))
-
-    val observer = TestObserver<List<Stream>>()
-    model.switchToPreviousSubtitle().subscribe(observer)
-
-    assertThat(observer.values()[0]).isSameAs(audios)
-  }
-
-  @Test
-  fun pause() {
+  @Test fun pauses() {
     val status = PlayerStatus(file = "/movies/brave heart.mkv")
     whenInvoke(service.pause()).thenReturn(Single.just(status))
-
-    val observer = TestObserver<PlayerStatus>()
-    model.pause().subscribe(observer)
-
-    assertThat(observer.values()[0]).isSameAs(status)
+    assertThat(underTest.pause().blockingGet()).isEqualTo(status)
   }
 
-  @Test
-  fun play() {
+  @Test fun plays() {
     val status = PlayerStatus(file = "/movies/brave heart.mkv")
     whenInvoke(service.play()).thenReturn(Single.just(status))
-
-    val observer = TestObserver<PlayerStatus>()
-    model.play().subscribe(observer)
-
-    assertThat(observer.values()[0]).isSameAs(status)
+    assertThat(underTest.play().blockingGet()).isEqualTo(status)
   }
 
-  @Test
-  fun replay() {
+  @Test fun `plays pause`() {
+    val status = PlayerStatus(file = "/movies/brave heart.mkv")
+    whenInvoke(service.playPause()).thenReturn(Single.just(status))
+    assertThat(underTest.playPause().blockingGet()).isEqualTo(status)
+  }
+
+  @Test fun replays() {
+    val playbackData = AAPlayback(file  = "/movies/brave heart.mkv", position = 123, activeAudioTrack = 1, activeSubtitle = 2)
+    playbackData.save()
     val status = PlayerStatus(file = "/movies/brave heart.mkv")
     whenInvoke(service.replay()).thenReturn(Single.just(status))
 
-    val observer = TestObserver<PlayerStatus>()
-    model.replay().subscribe(observer)
-
-    assertThat(observer.values()[0]).isSameAs(status)
+    assertThat(Select().from(AAPlayback::class.java).where("file = ?", "/movies/brave heart.mkv").count()).isEqualTo(1)
+    assertThat(underTest.replay().blockingGet()).isEqualTo(status)
+    assertThat(Select().from(AAPlayback::class.java).where("file = ?", "/movies/brave heart.mkv").count()).isZero()
   }
 
-  @Test
-  fun `cleanup playback on replay`() {
+  @Test(expected = RuntimeException::class)
+  fun `does not clean playback when error occurred while replay`() {
+    val playbackData = AAPlayback(file  = "/movies/brave heart.mkv", position = 123, activeAudioTrack = 1, activeSubtitle = 2)
+    playbackData.save()
+    val error = RuntimeException()
+    whenInvoke(service.replay()).thenThrow(error)
+
+    assertThat(Select().from(AAPlayback::class.java).where("file = ?", "/movies/brave heart.mkv").count()).isEqualTo(1)
+    try {
+      underTest.replay().blockingGet()
+    } catch (e: Exception) {
+      assertThat(Select().from(AAPlayback::class.java).where("file = ?", "/movies/brave heart.mkv").count()).isEqualTo(1)
+      throw e
+    }
+  }
+
+  @Test fun `sets position`() {
     val status = PlayerStatus(file = "/movies/brave heart.mkv")
-    val playback = Playback("/movies/brave heart.mkv", 222, 1, 2)
-    whenInvoke(service.replay()).thenReturn(Single.just(status))
-    whenInvoke(playbacks.find("/movies/brave heart.mkv")).thenReturn(playback)
-
-    val observer = TestObserver<PlayerStatus>()
-    model.replay().subscribe(observer)
-
-    verify(playbacks).remove(playback)
+    whenInvoke(service.setPosition(123)).thenReturn(Single.just(status))
+    assertThat(underTest.setPosition(123).blockingGet()).isEqualTo(status)
   }
 
-  @Test
-  fun `set position`() {
-    val status = PlayerStatus(file = "/movies/brave heart.mkv")
-    whenInvoke(service.setPosition(anyInt())).thenReturn(Single.just(status))
-
-    val observer = TestObserver<PlayerStatus>()
-    model.setPosition(123).subscribe(observer)
-
-    verify(service).setPosition(123)
-    assertThat(observer.values()[0]).isSameAs(status)
-  }
-
-  @Test
-  fun `retrieve status`() {
+  @Test fun `retrieves status`() {
     val status = PlayerStatus(file = "/movies/brave heart.mkv")
     whenInvoke(service.getStatus()).thenReturn(Single.just(status))
-
-    val observer = TestObserver<PlayerStatus>()
-    model.getStatus().subscribe(observer)
-
-    assertThat(observer.values()[0]).isSameAs(status)
+    assertThat(underTest.getStatus().blockingGet()).isEqualTo(status)
   }
 
-  @Test
-  fun `stop playback`() {
+  @Test fun `saves playback on stop`() {
     val status = PlayerStatus(file = "/movies/brave heart.mkv", position = 111, activeAudioTrack = 1, activeSubtitle = 2)
     whenInvoke(service.stop()).thenReturn(Single.just(status))
-
-    val observer = TestObserver<PlayerStatus>()
-    model.stop().subscribe(observer)
-
-    assertThat(observer.values()[0]).isSameAs(status)
+    assertThat(underTest.stop().blockingGet()).isEqualTo(status)
+    assertThat(Select().from(AAPlayback::class.java).where("file = ?", status.file).execute<AAPlayback>())
+        .containsOnly(AAPlayback(file = status.file, position = status.position, activeAudioTrack = status.activeAudioTrack, activeSubtitle = status.activeSubtitle))
   }
 
-  @Test
-  fun `save playback on stop`() {
-    val status = PlayerStatus(file = "/movies/brave heart.mkv", position = 222, activeAudioTrack = 1, activeSubtitle = 2)
-    val playback = Playback("/movies/brave heart.mkv", 222, 1, 2)
-    val existent = Playback("/movies/brave heart.mkv", 111, 1, 2)
-    whenInvoke(playbacks.find("/movies/brave heart.mkv")).thenReturn(existent)
+  @Test fun `overwrites playback on stop`() {
+    AAPlayback(file = "/movies/brave heart.mkv", position = 55, activeAudioTrack = 1, activeSubtitle = 1).save()
+    val status = PlayerStatus(file = "/movies/brave heart.mkv", position = 111, activeAudioTrack = 1, activeSubtitle = 2)
     whenInvoke(service.stop()).thenReturn(Single.just(status))
-
-    val observer = TestObserver<PlayerStatus>()
-    model.stop().subscribe(observer)
-
-    verify(playbacks).remove(existent)
-    verify(playbacks).save(playback)
+    assertThat(underTest.stop().blockingGet()).isEqualTo(status)
+    assertThat(Select().from(AAPlayback::class.java).where("file = ?", status.file).execute<AAPlayback>())
+        .containsOnly(AAPlayback(file = "/movies/brave heart.mkv", position = 111, activeAudioTrack = 1, activeSubtitle = 2))
   }
 
-  @Test
-  fun `toggle mute`() {
-    model.toggleMute()
-    verify(service).toggleMute()
+  @Test(expected = RuntimeException::class)
+  fun `does not save playback when error occurred while stop`() {
+    val error = RuntimeException()
+    whenInvoke(service.stop()).thenThrow(error)
+    try {
+      underTest.stop().blockingGet()
+    } catch (e: Exception) {
+      assertThat(Select().from(AAPlayback::class.java).count()).isZero()
+      throw e
+    }
   }
 
-  @Test
-  fun `toggle subtitles`() {
-    model.toggleSubtitles()
-    verify(service).toggleSubtitles()
+  @Test fun `toggles mute`() {
+    val status = PlayerStatus(file = "/movies/brave heart.mkv", muted = true)
+    whenInvoke(service.toggleMute()).thenReturn(Single.just(status))
+    assertThat(underTest.toggleMute().blockingGet()).isEqualTo(status)
   }
 
-  @Test
-  fun `decrease volume`() {
+  @Test fun `toggles subtitles`() {
+    val status = PlayerStatus(file = "/movies/brave heart.mkv", subtitlesOff = true)
+    whenInvoke(service.toggleSubtitles()).thenReturn(Single.just(status))
+    assertThat(underTest.toggleSubtitles().blockingGet()).isEqualTo(status)
+  }
+
+  @Test fun `decreases volume`() {
     val vol = Volume(0.3f)
     whenInvoke(service.volumeDown()).thenReturn(Single.just(vol))
-
-    val observer = TestObserver<Volume>()
-    model.volumeDown().subscribe(observer)
-
-    assertThat(observer.values()[0]).isSameAs(vol)
+    assertThat(underTest.volumeDown().blockingGet()).isEqualTo(vol)
   }
 
-  @Test
-  fun `increase volume`() {
-    val vol = Volume(0.3f)
+  @Test fun `increases volume`() {
+    val vol = Volume(0.5f)
     whenInvoke(service.volumeUp()).thenReturn(Single.just(vol))
-
-    val observer = TestObserver<Volume>()
-    model.volumeUp().subscribe(observer)
-
-    assertThat(observer.values()[0]).isSameAs(vol)
+    assertThat(underTest.volumeUp().blockingGet()).isEqualTo(vol)
   }
 }

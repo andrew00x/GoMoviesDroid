@@ -1,56 +1,47 @@
 package com.andrew00x.gomoviesdroid.catalog
 
-import android.annotation.SuppressLint
 import com.andrew00x.gomoviesdroid.*
-import com.andrew00x.gomoviesdroid.player.PlayerModel
 import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers.io
 import java.util.concurrent.TimeUnit.MILLISECONDS
-import javax.inject.Inject
 
-class CatalogPresenter @Inject constructor(
+class CatalogPresenter(
     private val catalog: CatalogModel,
-    private val player: PlayerModel,
     private val errorHandler: ErrorHandler) {
-  private var subscriptions: CompositeDisposable = CompositeDisposable()
+  private val subscriptions: CompositeDisposable = CompositeDisposable()
 
-  fun attach(view: CatalogView, events: CatalogEventSource) {
-    subscriptions.add(events.clickMovie().subscribe { movie ->
+  fun attach(view: CatalogView) {
+    // skip(1) is workaround since RxTextView.textChanges generates one extra event when attach listener
+    subscriptions.add(view.changeSearchField().skip(1).debounce(300, MILLISECONDS).subscribe { title ->
       mainThread().scheduleDirect { view.showLoader() }
-      player.play(movie.file).subscribeOn(io()).observeOn(mainThread())
-          .subscribeWith(DefaultObserver<PlayerStatus>(
-              { view.hideLoader(); view.onPlaybackStarted() },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
-          ))
-    })
-    subscriptions.add(events.changeSearchField().debounce(300, MILLISECONDS).subscribe { title ->
-      mainThread().scheduleDirect { view.showLoader() }
-      (if (title.isBlank()) catalog.list() else catalog.search(title.trim())).subscribeOn(io()).observeOn(mainThread())
+      catalog.load(title).subscribeOn(io()).observeOn(mainThread())
           .subscribeWith(DefaultObserver<List<Movie>>(
-              { movies -> view.hideLoader(); view.showMovies(movies) },
-              { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+              { movies -> view.setMovies(movies) },
+              { err -> errorHandler.handleError(view, err) },
+              { view.hideLoader() }
           ))
     })
-    subscriptions.add(events.changeSearchField().subscribe { title ->
-      if (title.isBlank()) view.hideClearSearchButton() else view.showClearSearchButton()
+    subscriptions.add(view.changeSearchField().subscribe { title ->
+      if (title.isBlank()) view.hideClearSearch() else view.showClearSearch()
     })
-    subscriptions.add(events.clickClearSearchField().subscribe { view.clearSearchField() })
-
-    refresh(view)
-  }
-
-  @SuppressLint("CheckResult")
-  fun refresh(view: CatalogView) {
-    view.showLoader()
-    catalog.list().subscribeOn(io()).observeOn(mainThread())
+    subscriptions.add(view.clickClearSearchField().subscribe {
+      view.clearSearchField()
+    })
+    subscriptions.add(view.longClickMovie().subscribe { movie ->
+      view.showDetailsFor(movie)
+    })
+    subscriptions.add(catalog.load(view.getSearchField()).subscribeOn(io()).observeOn(mainThread())
+        .doOnSubscribe { view.showLoader() }
         .subscribeWith(DefaultObserver<List<Movie>>(
-            { movies -> view.hideLoader(); view.showMovies(movies) },
-            { err -> view.hideLoader(); errorHandler.handleError(view, err) }
+            { movies -> view.setMovies(movies) },
+            { err -> errorHandler.handleError(view, err) },
+            { view.hideLoader() }
         ))
+    )
   }
 
   fun detach() {
-    subscriptions.dispose()
+    subscriptions.clear()
   }
 }

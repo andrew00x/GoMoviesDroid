@@ -1,9 +1,12 @@
 package com.andrew00x.gomoviesdroid.ui
 
 import android.support.v4.app.Fragment
-import com.andrew00x.gomoviesdroid.BaseView
 
 abstract class BaseFragment : Fragment(), BaseView {
+  override fun showInfo(message: String) {
+    if (activity is BaseView) (activity as BaseView).showInfo(message)
+  }
+
   override fun showError(message: String?) {
     if (activity is BaseView) (activity as BaseView).showError(message)
   }
@@ -15,4 +18,6 @@ abstract class BaseFragment : Fragment(), BaseView {
   override fun hideLoader() {
     if (activity is BaseView) (activity as BaseView).hideLoader()
   }
+
+  open fun refresh() {}
 }

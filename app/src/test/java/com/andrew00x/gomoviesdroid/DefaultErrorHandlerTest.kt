@@ -1,5 +1,6 @@
 package com.andrew00x.gomoviesdroid
 
+import com.andrew00x.gomoviesdroid.ui.BaseView
 import com.google.gson.GsonBuilder
 import okhttp3.MediaType
 import okhttp3.ResponseBody

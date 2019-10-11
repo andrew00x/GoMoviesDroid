@@ -1,13 +1,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorMain"
+    android:background="@color/main"
     android:orientation="vertical"
-    android:paddingBottom="16dp"
-    android:paddingEnd="8dp"
     android:paddingStart="8dp"
-    android:paddingTop="16dp">
-
+    android:paddingTop="16dp"
+    android:paddingEnd="8dp"
+    android:paddingBottom="16dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -16,28 +15,29 @@
         android:focusableInTouchMode="true">
 
         <TextView
-            android:id="@+id/server_name_label"
+            android:id="@+id/configuration_server_name_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerInParent="true"
-            android:labelFor="@id/server_edit"
+            android:labelFor="@id/configuration_server_edit"
             android:text="@string/server"
-            android:textColor="@color/colorLightGray"
-            android:textSize="14sp" />
+            android:textColor="@color/lightGray"
+            android:textSize="@dimen/normal_text" />
 
         <EditText
-            android:id="@+id/server_edit"
+            android:id="@+id/configuration_server_edit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_centerInParent="true"
             android:layout_marginStart="8dp"
-            android:layout_toEndOf="@id/server_name_label"
-            android:background="@drawable/rounded_borders_edit_text"
+            android:layout_toEndOf="@id/configuration_server_name_label"
+            android:background="@drawable/rounded_borders_gray_solid_light_gray"
+            android:importantForAutofill="no"
             android:inputType="textUri"
             android:padding="8dp"
-            android:textSize="14sp" />
+            android:textSize="@dimen/normal_text" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -47,28 +47,61 @@
         android:focusableInTouchMode="true">
 
         <TextView
-            android:id="@+id/server_port_label"
+            android:id="@+id/configuration_server_port_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerInParent="true"
-            android:labelFor="@id/port_edit"
+            android:labelFor="@id/configuration_port_edit"
             android:text="@string/port"
-            android:textColor="@color/colorLightGray"
-            android:textSize="14sp" />
+            android:textColor="@color/lightGray"
+            android:textSize="@dimen/normal_text" />
 
         <EditText
-            android:id="@+id/port_edit"
+            android:id="@+id/configuration_port_edit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_centerInParent="true"
             android:layout_marginStart="8dp"
-            android:layout_toEndOf="@id/server_port_label"
-            android:background="@drawable/rounded_borders_edit_text"
+            android:layout_toEndOf="@id/configuration_server_port_label"
+            android:background="@drawable/rounded_borders_gray_solid_light_gray"
+            android:importantForAutofill="no"
             android:inputType="number"
             android:padding="8dp"
-            android:textSize="14sp" />
+            android:textSize="@dimen/normal_text" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
+
+        <TextView
+            android:id="@+id/configuration_detail_langs_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerInParent="true"
+            android:labelFor="@id/configuration_detail_langs_edit"
+            android:text="@string/detail_langs"
+            android:textColor="@color/lightGray"
+            android:textSize="@dimen/normal_text" />
+
+        <EditText
+            android:id="@+id/configuration_detail_langs_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerInParent="true"
+            android:layout_marginStart="8dp"
+            android:layout_toEndOf="@id/configuration_detail_langs_label"
+            android:background="@drawable/rounded_borders_gray_solid_light_gray"
+            android:importantForAutofill="no"
+            android:inputType="text"
+            android:padding="8dp"
+            android:textSize="@dimen/normal_text" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -76,12 +109,12 @@
         android:layout_height="wrap_content">
 
         <Button
-            android:id="@+id/save_configuration_button"
+            android:id="@+id/configuration_save_configuration_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:background="@drawable/square_button_green"
-            android:text="@string/save_configuration"
+            android:background="@drawable/square_green"
+            android:text="@string/save"
             android:textAllCaps="false" />
 
     </RelativeLayout>

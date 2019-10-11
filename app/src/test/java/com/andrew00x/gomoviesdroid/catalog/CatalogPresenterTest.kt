@@ -1,18 +1,20 @@
 package com.andrew00x.gomoviesdroid.catalog
 
-import com.andrew00x.gomoviesdroid.*
-import com.andrew00x.gomoviesdroid.player.PlayerModel
+import com.andrew00x.gomoviesdroid.ErrorHandler
+import com.andrew00x.gomoviesdroid.Event
+import com.andrew00x.gomoviesdroid.SchedulersSetup
 import io.reactivex.Single
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
+import java.lang.RuntimeException
 import java.util.concurrent.TimeUnit
 import org.mockito.Mockito.`when` as whenInvoke
 
@@ -22,172 +24,108 @@ class CatalogPresenterTest {
   @JvmField
   val schedulers = SchedulersSetup()
 
-  @Mock lateinit var catalog: CatalogModel
-  @Mock lateinit var player: PlayerModel
+  @Mock lateinit var catalogModel: CatalogModel
+  @Mock lateinit var catalogView: CatalogView
   @Mock lateinit var errorHandler: ErrorHandler
-  @Mock lateinit var view: CatalogView
-  @Mock lateinit var events: CatalogEventSource
-  @InjectMocks lateinit var presenter: CatalogPresenter
+  @InjectMocks lateinit var underTest: CatalogPresenter
 
   private lateinit var changeSearchField: Event<String>
   private lateinit var clickClearSearchField: Event<Any>
-  private lateinit var clickMovie: Event<Movie>
+  private lateinit var longClickMovie: Event<Movie>
 
-  @Before
-  fun setup() {
+  @Before fun setup() {
     changeSearchField = Event()
     clickClearSearchField = Event()
-    clickMovie = Event()
+    longClickMovie = Event()
 
-    whenInvoke(catalog.list()).thenReturn(Single.just(listOf()))
-    whenInvoke(events.changeSearchField()).thenReturn(changeSearchField)
-    whenInvoke(events.clickClearSearchField()).thenReturn(clickClearSearchField)
-    whenInvoke(events.clickMovie()).thenReturn(clickMovie)
+    whenInvoke(catalogModel.load()).thenReturn(Single.just(emptyList()))
+    whenInvoke(catalogModel.load(ArgumentMatchers.anyString())).thenReturn(Single.just(emptyList()))
+    whenInvoke(catalogView.changeSearchField()).thenReturn(changeSearchField)
+    whenInvoke(catalogView.clickClearSearchField()).thenReturn(clickClearSearchField)
+    whenInvoke(catalogView.longClickMovie()).thenReturn(longClickMovie)
+    whenInvoke(catalogView.getSearchField()).thenReturn("")
   }
 
-  @After
-  fun cleanup() {
-    presenter.detach()
-  }
-
-  @Test
-  fun `list movies on start`() {
+  @Test fun `lists all movies when search field is empty`() {
     val movies = listOf(
-        Movie(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", true),
-        Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", true)
+        Movie(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", available = true),
+        Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
     )
-    whenInvoke(catalog.list()).thenReturn(Single.just(movies))
+    whenInvoke(catalogModel.load()).thenReturn(Single.just(movies))
 
-    presenter.attach(view, events)
-
-    val inOrder = Mockito.inOrder(view)
-    inOrder.verify(view).showLoader()
-    inOrder.verify(view).hideLoader()
-    inOrder.verify(view).showMovies(movies)
-  }
-
-  @Test
-  fun `search movies`() {
-    presenter.attach(view, events)
-    reset(view)
-    val movies = listOf(Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", true))
-    whenInvoke(catalog.search("brave")).thenReturn(Single.just(movies))
-
-    changeSearchField.send("brave")
-    schedulers.computationScheduler.advanceTimeBy(500, TimeUnit.MILLISECONDS)
-    schedulers.computationScheduler.triggerActions()
-
-    val inOrder = Mockito.inOrder(view)
-    inOrder.verify(view).showLoader()
-    inOrder.verify(view).hideLoader()
-    inOrder.verify(view).showMovies(movies)
-
-  }
-
-  @Test
-  fun `list movies when search field is empty`() {
-    presenter.attach(view, events)
-    reset(view)
-    val movies = listOf(
-        Movie(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", true),
-        Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", true)
-    )
-    whenInvoke(catalog.list()).thenReturn(Single.just(movies))
-
+    underTest.attach(catalogView)
+    changeSearchField.send("") // behave like RxTextView.textChanges, extra event when attach listener
     changeSearchField.send("")
     schedulers.computationScheduler.advanceTimeBy(500, TimeUnit.MILLISECONDS)
     schedulers.computationScheduler.triggerActions()
 
-    val inOrder = Mockito.inOrder(view)
-    inOrder.verify(view).showLoader()
-    inOrder.verify(view).hideLoader()
-    inOrder.verify(view).showMovies(movies)
+    val inOrder = Mockito.inOrder(catalogView, catalogModel)
+    inOrder.verify(catalogView).showLoader()
+    inOrder.verify(catalogModel).load()
+    inOrder.verify(catalogView).hideLoader()
+    inOrder.verify(catalogView).setMovies(movies)
   }
 
-  @Test
-  fun `show clear search field button when search field is not empty`() {
-    presenter.attach(view, events)
-    reset(view)
-    changeSearchField.send("something")
-    verify(view).showClearSearchButton()
-  }
+  @Test fun `lists movies when search field changed`() {
+    val movies = listOf(
+        Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+    )
+    whenInvoke(catalogModel.load("brave")).thenReturn(Single.just(movies))
 
-  @Test
-  fun `do not show clear search field button when search field is empty`() {
-    presenter.attach(view, events)
-    reset(view)
-    changeSearchField.send("")
-    verify(view, never()).showClearSearchButton()
-    verify(view).hideClearSearchButton()
-  }
-
-  @Test
-  fun `start to play movie when click on it`() {
-    presenter.attach(view, events)
-    reset(view)
-    val movie = Movie(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", true)
-    val status = PlayerStatus(file = "/movies/gladiator.mkv")
-    whenInvoke(player.play("/movies/gladiator.mkv")).thenReturn(Single.just(status))
-
-    clickMovie.send(movie)
-
-    verify(player).play("/movies/gladiator.mkv")
-    val inOrder = Mockito.inOrder(view)
-    inOrder.verify(view).showLoader()
-    inOrder.verify(view).hideLoader()
-    inOrder.verify(view).onPlaybackStarted()
-  }
-
-  @Test
-  fun `notify ErrorHandler when error occurred while list movies`() {
-    val err = RuntimeException("failed")
-    whenInvoke(catalog.list()).thenReturn(Single.error(err))
-    presenter.attach(view, events)
-
-    val inOrder = Mockito.inOrder(view, errorHandler)
-    inOrder.verify(view).showLoader()
-    inOrder.verify(view).hideLoader()
-    inOrder.verify(errorHandler).handleError(view, err)
-  }
-
-  @Test
-  fun `notify ErrorHandler when error occurred while search movies`() {
-    presenter.attach(view, events)
-    reset(view)
-    val err = RuntimeException("failed")
-    whenInvoke(catalog.search("brave")).thenReturn(Single.error(err))
-
+    underTest.attach(catalogView)
+    changeSearchField.send("") // behave like RxTextView.textChanges, extra event when attach listener
     changeSearchField.send("brave")
     schedulers.computationScheduler.advanceTimeBy(500, TimeUnit.MILLISECONDS)
     schedulers.computationScheduler.triggerActions()
 
-    val inOrder = Mockito.inOrder(view, errorHandler)
-    inOrder.verify(view).showLoader()
-    inOrder.verify(view).hideLoader()
-    inOrder.verify(errorHandler).handleError(view, err)
+    val inOrder = Mockito.inOrder(catalogView, catalogModel)
+    inOrder.verify(catalogView).showLoader()
+    inOrder.verify(catalogModel).load("brave")
+    inOrder.verify(catalogView).hideLoader()
+    inOrder.verify(catalogView).setMovies(movies)
   }
 
-  @Test
-  fun `notify ErrorHandler when error occurred while start play movie`() {
-    presenter.attach(view, events)
-    reset(view)
-    val movie = Movie(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", true)
-    val err = RuntimeException("failed")
-    whenInvoke(player.play("/movies/gladiator.mkv")).thenReturn(Single.error(err))
+  @Test fun `notifies about error occurred while load movies`() {
+    val error = RuntimeException()
+    whenInvoke(catalogModel.load()).thenReturn(Single.error(error))
 
-    clickMovie.send(movie)
+    underTest.attach(catalogView)
+    changeSearchField.send("") // behave like RxTextView.textChanges, extra event when attach listener
+    changeSearchField.send("")
+    schedulers.computationScheduler.advanceTimeBy(500, TimeUnit.MILLISECONDS)
+    schedulers.computationScheduler.triggerActions()
 
-    val inOrder = Mockito.inOrder(view, errorHandler)
-    inOrder.verify(view).showLoader()
-    inOrder.verify(view).hideLoader()
-    inOrder.verify(errorHandler).handleError(view, err)
+    val inOrder = Mockito.inOrder(catalogView, catalogModel, errorHandler)
+    inOrder.verify(catalogView).showLoader()
+    inOrder.verify(catalogModel).load()
+    inOrder.verify(catalogView).hideLoader()
+    inOrder.verify(errorHandler).handleError(catalogView, error)
   }
 
-  @Test
-  fun `clear search field on clear event`() {
-    presenter.attach(view, events)
-    reset(view)
+  @Test fun `hides clear search field button when field is empty`() {
+    underTest.attach(catalogView)
+    changeSearchField.send("")
+    verify(catalogView).hideClearSearch()
+  }
+
+  @Test fun `shows clear search field button when field contains text`() {
+    underTest.attach(catalogView)
+    changeSearchField.send("any")
+    verify(catalogView).showClearSearch()
+  }
+
+  @Test fun `clears search field when clear button is clicked`() {
+    underTest.attach(catalogView)
     clickClearSearchField.send(Unit)
-    verify(view).clearSearchField()
+    verify(catalogView).clearSearchField()
+  }
+
+  @Test fun `shows movie details when it is long clicked`() {
+    val movie = Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+    underTest.attach(catalogView)
+
+    longClickMovie.send(movie)
+
+    verify(catalogView).showDetailsFor(movie)
   }
 }
