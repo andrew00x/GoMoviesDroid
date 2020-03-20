@@ -64,9 +64,11 @@
         android:textColor="@color/lightGray" />
 
     <LinearLayout
+        android:id="@+id/movie_details_budget_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="invisible">
 
       <TextView
           android:id="@+id/movie_details_budget_label"
@@ -85,9 +87,11 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/movie_details_revenue_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="invisible">
 
       <TextView
           android:id="@+id/movie_details_revenue_label"

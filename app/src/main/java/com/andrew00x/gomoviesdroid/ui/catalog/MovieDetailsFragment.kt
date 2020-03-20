@@ -71,11 +71,17 @@ class MovieDetailsFragment : BaseDialogFragment(), MovieDetailsView {
     Picasso.get().load(details.posterUrl).placeholder(R.drawable.ic_file_download_24dp).error(R.drawable.ic_error_24dp).into(components.poster)
     components.title.text = details.originalTitle
     components.releaseDate.text = details.releaseDate
-    components.runtime.text = formatTime(details.runtime)
+    if (details.runtime > 0) components.runtime.text = formatTime(details.runtime)
     components.genres.text = details.genres.joinToString()
     components.overview.text = details.overview
-    components.budget.text = formatMoney(details.budget)
-    components.revenue.text = formatMoney(details.revenue)
+    if (details.budget > 0) {
+      components.budget.text = formatMoney(details.budget)
+      components.budgetView.visibility = View.VISIBLE
+    }
+    if (details.revenue > 0) {
+      components.revenue.text = formatMoney(details.revenue)
+      components.revenueView.visibility = View.VISIBLE
+    }
   }
 
   override fun changeLanguage(): Observable<String> {

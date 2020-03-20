@@ -1,6 +1,6 @@
 package com.andrew00x.gomoviesdroid.playlist
 
-import com.andrew00x.gomoviesdroid.DefaultObserver
+import com.andrew00x.gomoviesdroid.ResultObserver
 import com.andrew00x.gomoviesdroid.ErrorHandler
 import com.andrew00x.gomoviesdroid.queue.QueueItem
 import com.andrew00x.gomoviesdroid.queue.QueueModel
@@ -24,7 +24,7 @@ class PlaylistListPresenter @Inject constructor(
           view.showLoader()
           val items = playlistModel.getAll(playlist).map { item -> item.file }
           queueModel.enqueue(items, true).subscribeOn(io()).observeOn(mainThread())
-              .subscribeWith(DefaultObserver<List<QueueItem>>(
+              .subscribeWith(ResultObserver<List<QueueItem>>(
                   whenError = { err -> errorHandler.handleError(view, err) },
                   always = { view.hideLoader() }
               ))

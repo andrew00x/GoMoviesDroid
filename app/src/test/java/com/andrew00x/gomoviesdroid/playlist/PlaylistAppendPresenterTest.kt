@@ -56,8 +56,8 @@ class PlaylistAppendPresenterTest {
 
   @Test fun `lists all movies when search field is empty`() {
     val movies = listOf(
-        Movie(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", available = true),
-        Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+        Movie(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", available = true, detailsAvailable = false),
+        Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true, detailsAvailable = false)
     )
     whenInvoke(catalogModel.load()).thenReturn(Single.just(movies))
 
@@ -76,7 +76,7 @@ class PlaylistAppendPresenterTest {
 
   @Test fun `lists movies when search field changed`() {
     val movies = listOf(
-        Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+        Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true, detailsAvailable = false)
     )
     whenInvoke(catalogModel.load("brave")).thenReturn(Single.just(movies))
 
@@ -129,7 +129,7 @@ class PlaylistAppendPresenterTest {
   }
 
   @Test fun `adds movie in playlist when it is clicked`() {
-    val movie = Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+    val movie = Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true, detailsAvailable = false)
     val playlist = mock(Playlist::class.java)
     underTest.playlist = playlist
     underTest.attach(catalogView)
@@ -140,7 +140,7 @@ class PlaylistAppendPresenterTest {
   }
 
   @Test fun `notifies about error occurred while add item in playlist`() {
-    val movie = Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+    val movie = Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true, detailsAvailable = false)
     val playlist = mock(Playlist::class.java)
     val error = RuntimeException()
     whenInvoke(playlistModel.addItem(playlist, movie)).thenThrow(error)

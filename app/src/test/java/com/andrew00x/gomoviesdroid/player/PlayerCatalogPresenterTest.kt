@@ -53,8 +53,8 @@ class PlayerCatalogPresenterTest {
 
   @Test fun `lists all movies when search field is empty`() {
     val movies = listOf(
-        Movie(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", available = true),
-        Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+        Movie(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", available = true, detailsAvailable = false),
+        Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true, detailsAvailable = false)
     )
     whenInvoke(catalogModel.load()).thenReturn(Single.just(movies))
 
@@ -73,7 +73,7 @@ class PlayerCatalogPresenterTest {
 
   @Test fun `lists movies when search field changed`() {
     val movies = listOf(
-        Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+        Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true, detailsAvailable = false)
     )
     whenInvoke(catalogModel.load("brave")).thenReturn(Single.just(movies))
 
@@ -125,8 +125,8 @@ class PlayerCatalogPresenterTest {
     verify(catalogView).clearSearchField()
   }
 
-  @Test fun `starts playing movie when it is long clicked`() {
-    val movie = Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+  @Test fun `starts playing movie when it is clicked`() {
+    val movie = Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true, detailsAvailable = false)
     whenInvoke(playerModel.play(movie.file)).thenReturn(Single.just(PlayerStatus(file = movie.file, stopped = false)))
     underTest.attach(catalogView)
 
@@ -139,7 +139,7 @@ class PlayerCatalogPresenterTest {
   }
 
   @Test fun `notifies about error occurred while start playing movie`() {
-    val movie = Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+    val movie = Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true, detailsAvailable = false)
     val error = RuntimeException()
     whenInvoke(playerModel.play(movie.file)).thenReturn(Single.error(error))
     underTest.attach(catalogView)
@@ -154,7 +154,7 @@ class PlayerCatalogPresenterTest {
   }
 
   @Test fun `shows movie details when it is long clicked`() {
-    val movie = Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+    val movie = Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true, detailsAvailable = true)
     underTest.attach(catalogView)
 
     longClickMovie.send(movie)

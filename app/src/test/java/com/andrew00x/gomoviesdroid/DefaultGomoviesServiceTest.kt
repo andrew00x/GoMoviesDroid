@@ -194,4 +194,31 @@ class DefaultGomoviesServiceTest {
     whenInvoke(api.shiftQueue(Position(1))).thenReturn(Single.just(listOf(MoviePath("/movies/gladiator.mkv"))))
     assertThat(underTest.shiftQueue(1).blockingGet()).isEqualTo(listOf("/movies/gladiator.mkv"))
   }
+
+  @Test fun `list torrents`() {
+    val downloads = listOf(TorrentDownload(name = "download 1"))
+    whenInvoke(api.listTorrents()).thenReturn(Single.just(downloads))
+    assertThat(underTest.listTorrents().blockingGet()).isEqualTo(downloads)
+  }
+
+  @Test fun `start download`() {
+    val torrentBefore = TorrentDownload(name = "download 1", stopped = true)
+    val torrentAfter = TorrentDownload(name = "download 1", stopped = false)
+    whenInvoke(api.startDownload(torrentBefore)).thenReturn(Single.just(torrentAfter))
+    assertThat(underTest.startDownload(torrentBefore).blockingGet()).isEqualTo(torrentAfter)
+  }
+
+  @Test fun `stop download`() {
+    val torrentBefore = TorrentDownload(name = "download 1", stopped = false)
+    val torrentAfter = TorrentDownload(name = "download 1", stopped = true)
+    whenInvoke(api.startDownload(torrentBefore)).thenReturn(Single.just(torrentAfter))
+    assertThat(underTest.startDownload(torrentBefore).blockingGet()).isEqualTo(torrentAfter)
+  }
+
+  @Test fun `delete download`() {
+    val delete = TorrentDownload("download 1")
+    val afterDelete = listOf(TorrentDownload("download 2"))
+    whenInvoke(api.deleteTorrent(delete)).thenReturn(Single.just(afterDelete))
+    assertThat(underTest.deleteTorrent(delete).blockingGet()).isEqualTo(afterDelete)
+  }
 }

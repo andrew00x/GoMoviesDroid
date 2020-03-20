@@ -20,23 +20,23 @@ class CatalogModelTest {
 
   @Test fun `searches for movies by title`() {
     val data = listOf(
-        MovieData(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", true, MovieDetailsData(originalTitle = "Brave Heart", tmdbId = 3))
+        MovieData(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", true, true, MovieDetailsData(originalTitle = "Brave Heart", tmdbId = 3))
     )
     whenInvoke(service.search("brave")).thenReturn(Single.just(data))
     assertThat(underTest.load("brave").blockingGet())
-        .isEqualTo(listOf(Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)))
+        .isEqualTo(listOf(Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true, detailsAvailable = true)))
   }
 
   @Test fun `lists all movies`() {
     val data = listOf(
-        MovieData(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", true, MovieDetailsData(originalTitle = "Gladiator", tmdbId = 4)),
+        MovieData(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", true, true, MovieDetailsData(originalTitle = "Gladiator", tmdbId = 4)),
         MovieData(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", true)
     )
     whenInvoke(service.list()).thenReturn(Single.just(data))
     assertThat(underTest.load().blockingGet())
         .isEqualTo(listOf(
-            Movie(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", available = true),
-            Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+            Movie(1, "gladiator.mkv", "/movies/gladiator.mkv", "movies_1", available = true, detailsAvailable = true),
+            Movie(2, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true, detailsAvailable = false)
         ))
   }
 

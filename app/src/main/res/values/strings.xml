@@ -10,6 +10,9 @@
     <string name="empty_queue_message">No movies in queue</string>
     <string name="playlist_list_empty_message">No playlists</string>
     <string name="playlist_empty_message">No items</string>
+    <string name="torrent_list_empty_message">No torrents</string>
+    <string name="torrent_list_active">Active</string>
+    <string name="torrent_list_stopped">Stopped</string>
     <string name="movie_details_budget">Budget</string>
     <string name="movie_details_revenue">Revenue</string>
 </resources>

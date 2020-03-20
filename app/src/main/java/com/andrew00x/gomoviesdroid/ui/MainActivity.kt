@@ -19,6 +19,7 @@ import com.andrew00x.gomoviesdroid.ui.config.ConfigurationFragment
 import com.andrew00x.gomoviesdroid.ui.player.PlayerFragment
 import com.andrew00x.gomoviesdroid.ui.playlist.PlaylistListFragment
 import com.andrew00x.gomoviesdroid.ui.queue.QueueFragment
+import com.andrew00x.gomoviesdroid.ui.torrent.TorrentFragment
 
 class MainActivity : AppCompatActivity(), BaseView, ConfigurationListener {
   private val pages = mutableListOf<BaseFragment>()
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity(), BaseView, ConfigurationListener {
     pages.add(QueueFragment.newInstance())
     pages.add(PlaylistListFragment.newInstance())
     pages.add(PlayerFragment.newInstance())
+    pages.add(TorrentFragment.newInstance())
     pages.add(ConfigurationFragment.newInstance())
     pager.adapter = object : FragmentStatePagerAdapter(supportFragmentManager) {
       override fun getItem(position: Int): Fragment = pages[position]
@@ -58,7 +60,8 @@ class MainActivity : AppCompatActivity(), BaseView, ConfigurationListener {
     tabs.getTabAt(1)?.customView = layoutInflater.inflate(R.layout.pager_tab_play_queue, null)
     tabs.getTabAt(2)?.customView = layoutInflater.inflate(R.layout.pager_tab_playlists, null)
     tabs.getTabAt(3)?.customView = layoutInflater.inflate(R.layout.pager_tab_player, null)
-    tabs.getTabAt(4)?.customView = layoutInflater.inflate(R.layout.pager_tab_settings, null)
+    tabs.getTabAt(4)?.customView = layoutInflater.inflate(R.layout.pager_tab_torrent, null)
+    tabs.getTabAt(5)?.customView = layoutInflater.inflate(R.layout.pager_tab_settings, null)
   }
 
   override fun recreate() {

@@ -3,7 +3,7 @@ package com.andrew00x.gomoviesdroid
 import io.reactivex.SingleObserver
 import io.reactivex.disposables.Disposable
 
-class DefaultObserver<T>(
+class ResultObserver<T>(
     private val whenSuccess: (T) -> Unit = {},
     private val whenError: (Throwable) -> Unit = {},
     private val always: () -> Unit = {}

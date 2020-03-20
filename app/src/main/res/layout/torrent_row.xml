@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:descendantFocusability="blocksDescendants"
+    android:orientation="horizontal">
+
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentStart="true"
+      android:layout_toStartOf="@id/torrent_row_remove"
+      android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/torrent_row_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:textColor="@drawable/torrent_row_selector" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <ProgressBar
+          android:id="@+id/torrent_row_progress_bar"
+          style="@android:style/Widget.ProgressBar.Horizontal"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:progressBackgroundTint="@color/gray"
+          android:progressTint="@color/lightGreen" />
+
+      <TextView
+          android:id="@+id/torrent_row_progress"
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"
+          android:layout_alignBottom="@id/torrent_row_progress_bar"
+          android:background="@android:color/transparent"
+          android:gravity="center" />
+    </RelativeLayout>
+
+  </LinearLayout>
+
+  <ImageButton
+      android:id="@+id/torrent_row_remove"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentEnd="true"
+      android:background="@null"
+      android:paddingTop="8dp"
+      android:paddingBottom="8dp"
+      android:src="@drawable/ic_delete_24dp" />
+
+</RelativeLayout>

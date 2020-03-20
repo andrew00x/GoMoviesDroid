@@ -1,5 +1,6 @@
 package com.andrew00x.gomoviesdroid
 
+import io.reactivex.Completable
 import io.reactivex.Single
 
 interface GomoviesService {
@@ -33,6 +34,11 @@ interface GomoviesService {
   fun toggleSubtitles(): Single<PlayerStatus>
   fun volumeUp(): Single<Volume>
   fun volumeDown(): Single<Volume>
+  fun addTorrent(torrent: TorrentFile): Completable
+  fun listTorrents(): Single<List<TorrentDownload>>
+  fun startDownload(torrent: TorrentDownload): Single<TorrentDownload>
+  fun stopDownload(torrent: TorrentDownload): Single<TorrentDownload>
+  fun deleteTorrent(torrent: TorrentDownload): Single<List<TorrentDownload>>
 }
 
 class DefaultGomoviesService(private val api: GomoviesApi) : GomoviesService {
@@ -101,4 +107,16 @@ class DefaultGomoviesService(private val api: GomoviesApi) : GomoviesService {
 
   override fun selectSubtitle(index: Int): Single<List<Stream>> =
       api.selectSubtitle(StreamIndex(index))
+
+  override fun addTorrent(torrent: TorrentFile): Completable {
+    return api.addTorrent(torrent)
+  }
+
+  override fun listTorrents(): Single<List<TorrentDownload>> = api.listTorrents()
+
+  override fun startDownload(torrent: TorrentDownload): Single<TorrentDownload> = api.startDownload(torrent)
+
+  override fun stopDownload(torrent: TorrentDownload): Single<TorrentDownload> = api.stopDownload(torrent)
+
+  override fun deleteTorrent(torrent: TorrentDownload): Single<List<TorrentDownload>> = api.deleteTorrent(torrent)
 }

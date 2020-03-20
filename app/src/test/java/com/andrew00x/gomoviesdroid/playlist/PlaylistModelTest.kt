@@ -101,7 +101,7 @@ class PlaylistModelTest {
   @Test fun `adds item as movie to playlist`() {
     val playlist = Playlist("my playlist 1")
     playlist.save()
-    val item = underTest.addItem(playlist, Movie(1, "brave heart.mkv", "/movies/brave heart.mkv", "movies", available = true))
+    val item = underTest.addItem(playlist, Movie(1, "brave heart.mkv", "/movies/brave heart.mkv", "movies", available = true, detailsAvailable = false))
     assertThat(item.file).isEqualTo("/movies/brave heart.mkv")
     assertThat(Select().from(PlaylistItem::class.java).where("playlist = ?", playlist.id).execute<PlaylistItem>())
         .contains(item)

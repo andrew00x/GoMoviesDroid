@@ -26,7 +26,7 @@ class MovieDetailsPresenterTest {
   @Mock lateinit var catalog: CatalogModel
   @Mock lateinit var config: ConfigurationModel
   @Mock lateinit var errorHandler: ErrorHandler
-  @Spy val movie: Movie = Movie(1, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true)
+  @Spy val movie: Movie = Movie(1, "brave heart.mkv", "/movies/brave heart.mkv", "movies_1", available = true, detailsAvailable = true)
   @InjectMocks lateinit var underTest: MovieDetailsPresenter
   @Mock lateinit var view: MovieDetailsView
   private lateinit var changeLanguage: Event<String>

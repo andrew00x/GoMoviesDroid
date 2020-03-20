@@ -1,6 +1,6 @@
 package com.andrew00x.gomoviesdroid.queue
 
-import com.andrew00x.gomoviesdroid.DefaultObserver
+import com.andrew00x.gomoviesdroid.ResultObserver
 import com.andrew00x.gomoviesdroid.ErrorHandler
 import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
 import io.reactivex.disposables.CompositeDisposable
@@ -17,7 +17,7 @@ class QueuePresenter @Inject constructor(
     subscriptions.add(view.clickOnDelete().subscribe { item ->
       view.showLoader()
       queue.remove(item).subscribeOn(io()).observeOn(mainThread())
-          .subscribeWith(DefaultObserver(
+          .subscribeWith(ResultObserver(
               { data -> view.setQueue(data) },
               { err -> errorHandler.handleError(view, err) },
               { view.hideLoader() }
@@ -26,7 +26,7 @@ class QueuePresenter @Inject constructor(
     subscriptions.add(view.clickOnItem().subscribe { item ->
       view.showLoader()
       queue.shift(item).subscribeOn(io()).observeOn(mainThread())
-          .subscribeWith(DefaultObserver(
+          .subscribeWith(ResultObserver(
               { data -> view.setQueue(data) },
               { err -> errorHandler.handleError(view, err) },
               { view.hideLoader() }
@@ -41,7 +41,7 @@ class QueuePresenter @Inject constructor(
   fun refresh(view: QueueView): Disposable {
     view.showLoader()
     return queue.getAll().subscribeOn(io()).observeOn(mainThread())
-        .subscribeWith(DefaultObserver(
+        .subscribeWith(ResultObserver(
             { data -> view.setQueue(data) },
             { err -> errorHandler.handleError(view, err) },
             { view.hideLoader() }

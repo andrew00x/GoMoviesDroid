@@ -12,7 +12,8 @@ data class Movie(
     val title: String,
     val file: String,
     val drive: String,
-    val available: Boolean) : Parcelable {
+    val available: Boolean,
+    val detailsAvailable: Boolean) : Parcelable {
 
   override fun writeToParcel(dest: Parcel, flags: Int) {
     dest.writeInt(id)
@@ -20,6 +21,7 @@ data class Movie(
     dest.writeString(file)
     dest.writeString(drive)
     dest.writeInt(if (available) 1 else 0)
+    dest.writeInt(if (detailsAvailable) 1 else 0)
   }
 
   override fun describeContents(): Int = 0
@@ -31,6 +33,7 @@ data class Movie(
           parcel.readString(),
           parcel.readString(),
           parcel.readString(),
+          parcel.readInt() == 1,
           parcel.readInt() == 1
       )
     }
@@ -90,7 +93,7 @@ class CatalogModel @Inject constructor(private val service: GomoviesService) {
     return (if (tag.isBlank()) service.list() else service.search(tag.trim()))
         .map { listData ->
           listData.map { data ->
-            Movie(id = data.id, title = data.title, file = data.file, drive = data.drive, available = data.available)
+            Movie(id = data.id, title = data.title, file = data.file, drive = data.drive, available = data.available, detailsAvailable = data.detailsAvailable)
           }
         }
   }

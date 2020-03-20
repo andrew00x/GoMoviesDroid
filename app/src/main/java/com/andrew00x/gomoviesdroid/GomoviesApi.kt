@@ -11,6 +11,7 @@ data class MovieData(
     val file: String = "",
     val drive: String = "",
     val available: Boolean = false,
+    val detailsAvailable: Boolean = false,
     val details: MovieDetailsData? = null
 )
 
@@ -77,12 +78,27 @@ data class Playback(
 
 data class MoviePath(val file: String)
 
+data class TorrentDownload(
+    val name: String = "",
+    val path: String = "",
+    val size: Long = 0,
+    val completedSize: Long = 0,
+    val completed: Boolean = false,
+    val stopped: Boolean = false,
+    val ratio: Float = 0.0f,
+    val attrs: Map<String, String> = emptyMap()
+)
+
+data class TorrentFile(
+    val file: String // base64 encoded content of torrent file
+)
+
 interface GomoviesApi {
   @GET("list")
-  fun list(): Single<List<MovieData>>
+  fun list(@Query("details") details: Boolean = false): Single<List<MovieData>>
 
   @GET("search")
-  fun search(@Query("q") title: String): Single<List<MovieData>>
+  fun search(@Query("q") title: String, @Query("details") details: Boolean = false): Single<List<MovieData>>
 
   @GET("details")
   fun details(@Query("id") id: Int, @Query("lang") lang: String): Single<MovieDetailsData>
@@ -167,4 +183,19 @@ interface GomoviesApi {
 
   @POST("player/volumeup")
   fun volumeUp(): Single<Volume>
+
+  @POST("torrent/add")
+  fun addTorrent(@Body torrent: TorrentFile): Completable
+
+  @GET("torrent/list")
+  fun listTorrents(): Single<List<TorrentDownload>>
+
+  @POST("torrent/start")
+  fun startDownload(@Body torrent: TorrentDownload): Single<TorrentDownload>
+
+  @POST("torrent/stop")
+  fun stopDownload(@Body torrent: TorrentDownload): Single<TorrentDownload>
+
+  @POST("torrent/delete")
+  fun deleteTorrent(@Body torrent: TorrentDownload): Single<List<TorrentDownload>>
 }

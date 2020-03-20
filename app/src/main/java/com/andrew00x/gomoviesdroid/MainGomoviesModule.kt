@@ -1,7 +1,10 @@
 package com.andrew00x.gomoviesdroid
 
+import android.content.ContentResolver
 import android.content.Context
 import com.andrew00x.gomoviesdroid.config.ConfigurationModel
+import com.andrew00x.gomoviesdroid.file.ContentProvider
+import com.andrew00x.gomoviesdroid.file.DefaultContentProvider
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -55,4 +58,12 @@ class MainGomoviesModule(private val context: Context) {
       .readTimeout(60, SECONDS)
       .writeTimeout(60, SECONDS)
       .build()
+
+  @Singleton
+  @Provides
+  fun contentResolver(): ContentResolver = context.contentResolver
+
+  @Singleton
+  @Provides
+  fun contentProvider(contentResolver: ContentResolver): ContentProvider = DefaultContentProvider(contentResolver)
 }

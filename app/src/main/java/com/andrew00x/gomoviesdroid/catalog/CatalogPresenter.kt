@@ -16,7 +16,7 @@ class CatalogPresenter(
     subscriptions.add(view.changeSearchField().skip(1).debounce(300, MILLISECONDS).subscribe { title ->
       mainThread().scheduleDirect { view.showLoader() }
       catalog.load(title).subscribeOn(io()).observeOn(mainThread())
-          .subscribeWith(DefaultObserver<List<Movie>>(
+          .subscribeWith(ResultObserver<List<Movie>>(
               { movies -> view.setMovies(movies) },
               { err -> errorHandler.handleError(view, err) },
               { view.hideLoader() }
@@ -29,11 +29,11 @@ class CatalogPresenter(
       view.clearSearchField()
     })
     subscriptions.add(view.longClickMovie().subscribe { movie ->
-      view.showDetailsFor(movie)
+      if (movie.detailsAvailable) view.showDetailsFor(movie)
     })
     subscriptions.add(catalog.load(view.getSearchField()).subscribeOn(io()).observeOn(mainThread())
         .doOnSubscribe { view.showLoader() }
-        .subscribeWith(DefaultObserver<List<Movie>>(
+        .subscribeWith(ResultObserver<List<Movie>>(
             { movies -> view.setMovies(movies) },
             { err -> errorHandler.handleError(view, err) },
             { view.hideLoader() }

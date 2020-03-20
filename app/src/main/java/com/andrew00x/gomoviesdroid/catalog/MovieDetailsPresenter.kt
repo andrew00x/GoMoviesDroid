@@ -1,6 +1,6 @@
 package com.andrew00x.gomoviesdroid.catalog
 
-import com.andrew00x.gomoviesdroid.DefaultObserver
+import com.andrew00x.gomoviesdroid.ResultObserver
 import com.andrew00x.gomoviesdroid.ErrorHandler
 import com.andrew00x.gomoviesdroid.config.ConfigurationModel
 import io.reactivex.android.schedulers.AndroidSchedulers.mainThread
@@ -25,7 +25,7 @@ class MovieDetailsPresenter @Inject constructor(
     subscriptions.add(view.changeLanguage().subscribe { lang ->
       view.showLoader()
       catalog.loadDetails(movie.id, lang).subscribeOn(io()).observeOn(mainThread())
-          .subscribeWith(DefaultObserver<MovieDetails>(
+          .subscribeWith(ResultObserver<MovieDetails>(
               { data -> view.setDetails(data, lang) },
               { err -> errorHandler.handleError(view, err) },
               { view.hideLoader() }

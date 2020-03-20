@@ -1,6 +1,6 @@
 package com.andrew00x.gomoviesdroid.player
 
-import com.andrew00x.gomoviesdroid.DefaultObserver
+import com.andrew00x.gomoviesdroid.ResultObserver
 import com.andrew00x.gomoviesdroid.ErrorHandler
 import com.andrew00x.gomoviesdroid.PlayerStatus
 import com.andrew00x.gomoviesdroid.catalog.CatalogModel
@@ -26,7 +26,7 @@ class PlayerCatalogPresenter @Inject constructor(
     subscriptions.add(view.clickMovie().subscribe { movie ->
       view.showLoader()
       player.play(movie.file).subscribeOn(io()).observeOn(mainThread())
-          .subscribeWith(DefaultObserver<PlayerStatus>(
+          .subscribeWith(ResultObserver<PlayerStatus>(
               whenError = { err -> errorHandler.handleError(view, err) },
               always = { view.hideLoader() }
           ))

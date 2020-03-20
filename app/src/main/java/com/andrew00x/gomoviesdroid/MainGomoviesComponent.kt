@@ -20,4 +20,5 @@ interface MainGomoviesComponent {
   fun inject(fr: PlaylistFragment)
   fun plus(ext: ConfigurationModule): ConfigurationComponent
   fun plus(ext: MovieDetailsModule): MovieDetailsComponent
+  fun plus(ext: TorrentModule): TorrentComponent
 }
