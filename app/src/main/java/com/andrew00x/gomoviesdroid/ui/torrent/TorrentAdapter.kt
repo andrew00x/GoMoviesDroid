@@ -55,9 +55,10 @@ class TorrentAdapter(
 
   private fun displayString(torrent: TorrentDownload): String {
     val status = context.resources.getText(if (torrent.stopped) R.string.torrent_list_stopped else R.string.torrent_list_active)
+    val statusLine = if (torrent.attrs["message"]?.isBlank() == true) status else "$status, ${torrent.attrs["message"]}"
     return """
       ${torrent.name}
-      $status
+      $statusLine
     """.trimIndent()
   }
 }
