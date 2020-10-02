@@ -56,13 +56,17 @@ dependencies {
   androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 
+clean {
+  delete "${projectDir}/release"
+}
+
 publishing {
   publications {
     gomoviesApk(MavenPublication) {
       groupId 'com.andrew00x.gomovies'
       artifactId 'GoMoviesDroid'
       version version
-      artifact(file('release/GoMoviesDroid.apk'))
+      artifact(file('release/app-release.apk'))
     }
   }
   repositories {
