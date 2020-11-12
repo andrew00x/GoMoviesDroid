@@ -57,6 +57,12 @@ class TorrentFragment : BaseFragment(), TorrentView {
   override fun onResume() {
     super.onResume()
     presenter.attach(this)
+    // BehaviorSubject caches most recent item and emits event to torrentFileSelected once this view is resumed,
+    // it happens even when application was paused and resumed by user.
+    // As result the more than one torrentFileSelected might be emitted for the same file.
+    // Once presenter was attached and event was sent to it (it always works like that since this view is paused when select file window is opened)
+    // cached value in BehaviorSubject must be cleaned.
+    onSelectTorrent.onNext(Uri.EMPTY)
   }
 
   override fun onPause() {
@@ -85,7 +91,9 @@ class TorrentFragment : BaseFragment(), TorrentView {
     }
   }
 
-  override fun torrentFileSelected(): Observable<Uri> = onSelectTorrent
+  override fun torrentFileSelected(): Observable<Uri> = onSelectTorrent.filter {
+    it != Uri.EMPTY
+  }
 
   override fun updateTorrent(torrent: TorrentDownloadItem) {
     torrents.getItem(torrent.position)!!.data = torrent.data
