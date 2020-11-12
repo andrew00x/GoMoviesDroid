@@ -64,7 +64,7 @@ publishing {
   publications {
     gomoviesApk(MavenPublication) {
       groupId 'com.andrew00x.gomovies'
-      artifactId 'GoMoviesDroid'
+      artifactId 'gomovies-droid'
       version version
       artifact(file('release/app-release.apk'))
     }
